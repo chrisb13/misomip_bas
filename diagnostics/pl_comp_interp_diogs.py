@@ -143,7 +143,7 @@ if __name__ == "__main__":
                 # ename=os.path.basename(exp).split('_')[0]
                 dimlab[exp]=('','')
 
-                field=ifile[varname][-1,:].values
+                field=np.mean(ifile[varname][-12:,:].values,axis=0)
 
                 #Xylar's missing value stuff
                 # missingValue = 9.9692099683868690e36
