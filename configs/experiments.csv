@@ -1,0 +1,5 @@
+Run date,Code,Desc,Problems,post-proc status,Upload status,Path to run
+"February, 2017",Ocean?_???_NEMO-UKMOGO6,robin's original isomip+ experiments,,yes,Uploaded to OSF,/fs2/n02/shared/robin/MISOMIP
+"August, 2018",c,allowed very small column thicknesses ,"masking weird,  Ocean2 had wrong geometry (Xylar flagged)",yes,Uploaded to OSF,/nerc/n02/n02/chbull/RawData/NEMO/isomip
+"October 18, 2018",e,"re-instated 1m minimum, correct Ocean2 geometry",bottom temperatures looked bad --> all restoring TYP profiles had been wrong (!),yes,no,/nerc/n02/n02/chbull/RawData/NEMO/isomip/isomip_redux
+"November 16, 2018",f,"fixed restoring profile, re-tuned gammat",weird slugs on sidewalls and different masking on sidewalls depending on Ocean0/1/2,yes,?,/nerc/n02/n02/chbull/RawData/NEMO/isomip/isomip_redux

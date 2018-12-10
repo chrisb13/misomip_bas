@@ -168,8 +168,9 @@ if __name__ == "__main__":
                 # climits=clim[varname]
                 climits=get_climits(ifiles[0],varname)
 
-            plotback=sm.Grid(plotdict,(3,2),dimlabels=dimlab,globalcbar='jet',clevels=20,sharex=True,sharey=True,outputpath=plotoutputs+'comp_interpd/'+varname+'.png',globalclimits=climits,figtit=figtits[varname],titloc=3)
-            print plotoutputs+'comp_interpd/'+varname+'.png'
+            pout=plotoutputs+'comp_interpd/'+exp[0:6]+'_'+varname+'.png'
+            plotback=sm.Grid(plotdict,(4,2),dimlabels=dimlab,globalcbar='jet',clevels=20,sharex=True,sharey=True,outputpath=pout,globalclimits=climits,figtit=figtits[varname],titloc=3)
+            print pout
             # __import__('pdb').set_trace()
 
     else:
