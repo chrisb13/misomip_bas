@@ -15,6 +15,7 @@ import re
 import sys
 import numpy as np
 import contextlib as ctx
+from netCDF4 import Dataset
 
 OCEANCORES=eeee
 XIOCORES=ffff
@@ -22,6 +23,7 @@ NODES=gggg
 RHOURS=hhhh
 
 FORCING_NAME='yyyy'
+FORCING_NUM=kkkk
 PROJ='pppp'
 WORKDIR='wwww'+'/'
 STOCKDIR='ssss'
@@ -43,6 +45,60 @@ def mkdir(p):
           pass
        else: raise
 
+def rebuild_mesh_mask(handle):
+    """function to rebuild the mesh_mask using the NEMO tool
+    :handle: text file handle
+    :returns: 
+    """
+    handle.write(''+'\n')
+    handle.write('echo "Re-combining: '+'mesh_mask'+'"'+'\n')
+    handle.write('aprun -b '+RBUILD_NEMO+' '+'mesh_mask'+' '+str(OCEANCORES)+'\n')
+    handle.write(''+'\n')
+
+    handle.write('if [ -f ' +'mesh_mask.nc'+' ]; then'+'\n')
+    handle.write('   echo "File: '+'mesh_mask.nc'+' reassembled ok"'+'\n')
+    handle.write('   rm '+'mesh_mask_*.nc'+'\n')
+    handle.write('else'+'\n')
+    handle.write('   echo "!@#$% PROBLEM WITH RE-ASSEMBLY OF FILE'+' mesh_mask"'+'\n')
+    handle.write('   echo ">>>>>>>>>> STOP !"'+'\n')
+    handle.write('   exit 1'+'\n')
+    handle.write('fi'+'\n')
+    return
+
+
+
+def get_ISOMIP_timeslice(slice,wkdir):
+    """robin's code for feeding nemo the right bathy / isf_draft
+
+    Creates:
+       -bathy_meter.nc
+       -isf_draft_meter.nc
+    :slice: integer time slice (starts at 1)
+    :wkdir: WORKDIR 
+    :returns: 
+    """
+    lg.info("Creating bathy_meter.nc and isf_draft_meter.nc for .nc timestep: "+str(slice))
+
+    ncin=wkdir+'bathy_meter_all.nc'
+    assert(os.path.exists(ncin)),"can't find bathy_meter_all.nc, was it correctly linked by production_nemo_ARCHER.sh?"
+    ncfile_in = Dataset(ncin)
+    isf=ncfile_in.variables['isf_draft'][:].squeeze()
+    bathy=ncfile_in.variables['Bathymetry_isf'][:].squeeze()
+
+    ncfile_out = Dataset('bathy_meter.nc','w',format='NETCDF3_CLASSIC')
+    ncfile_out.createDimension('x',isf.shape[2])
+    ncfile_out.createDimension('y',isf.shape[1])
+    bathy_nc=ncfile_out.createVariable('Bathymetry_isf',np.dtype('float64').char,('y','x'))
+    bathy_nc[:]=bathy[slice-1,:,:]
+    ncfile_out.close()
+
+    ncfile_out = Dataset('isf_draft_meter.nc','w',format='NETCDF3_CLASSIC')
+    ncfile_out.createDimension('x',isf.shape[2])
+    ncfile_out.createDimension('y',isf.shape[1])
+    isf_nc=ncfile_out.createVariable('isf_draft',np.dtype('float64').char,('y','x'))
+    isf_nc[:]=isf[slice-1,:,:]
+    ncfile_out.close()
+    return
 
 if __name__ == "__main__": 
 
@@ -76,9 +132,10 @@ if __name__ == "__main__":
     while int(YEAR) <= int(YEAR_MAX):
         # lg.info("Currently working on year: " + str(YEAR))
 
-        NDAYS=10
-        NDAYS=32
+        NDAYS=5
+        # NDAYS=32
         NDAYS=365
+        lg.info("We are running with NDAYS: "+ str(NDAYS))
 
         # ##-- calculate corresponding number of time steps for NEMO:
         # NIT000=`echo "$NITENDM1 + 1" | bc`
@@ -134,6 +191,8 @@ if __name__ == "__main__":
 
             #check here to see if the restart files exist
             rfiles=sorted(glob.glob(WORKDIR+'OUTNEMO_'+str(int(NRUN)-1).zfill(4)+'/restarts/'+CONFIG+'_'+CASE+'_*_restart*.nc'))
+
+
             assert(rfiles!=[]),"E R R O R: Didn't find any NEMO restart files,STOP!"
 	    lg.info("Found "+str(len(rfiles)) + " restart files, e.g. "+os.path.basename(rfiles[0]))
             rfiles=None
@@ -145,6 +204,11 @@ if __name__ == "__main__":
             lg.info("Running from restart files: "+WORKDIR+'OUTNEMO_'+str(int(NRUN)-1).zfill(4)+'/restarts/'+CONFIG+'_'+CASE+'_'+str(NITENDM1)+'_restart*.nc')
 
         # print NIT000,NITEND 
+
+        if FORCING_NUM==3 or FORCING_NUM==4:
+            get_ISOMIP_timeslice(int(NRUN),WORKDIR)
+            #always want a mesh_mask with the moving geometry experiments..
+            nml_patch['namdom']={'nn_msh':1}
       
         lg.info("")
         lg.info("Resulting patch for namelist_ref: "+str(nml_patch['namrun']))
@@ -184,19 +248,9 @@ if __name__ == "__main__":
             handle.write(''+'\n')
 
             if str(NRUN)=='1':
-                handle.write(''+'\n')
-                handle.write('echo "Re-combining: '+'mesh_mask'+'"'+'\n')
-                handle.write('aprun -b '+RBUILD_NEMO+' '+'mesh_mask'+' '+str(OCEANCORES)+'\n')
-                handle.write(''+'\n')
-
-                handle.write('if [ -f ' +'mesh_mask.nc'+' ]; then'+'\n')
-                handle.write('   echo "File: '+'mesh_mask.nc'+' reassembled ok"'+'\n')
-                handle.write('   rm '+'mesh_mask_*.nc'+'\n')
-                handle.write('else'+'\n')
-                handle.write('   echo "!@#$% PROBLEM WITH RE-ASSEMBLY OF FILE'+' mesh_mask"'+'\n')
-                handle.write('   echo ">>>>>>>>>> STOP !"'+'\n')
-                handle.write('   exit 1'+'\n')
-                handle.write('fi'+'\n')
+                rebuild_mesh_mask(handle)
+            elif FORCING_NUM==3 or FORCING_NUM==4:
+                rebuild_mesh_mask(handle)
 
             rone=CONFIG+'_'+CASE+'_'+NITEND.zfill(8)+'_'+'restart_oce.nc'
             # rone_ice=CONFIG+'_'+CASE+'_'+NITEND.zfill(8)+'_'+'restart_ice.nc'
@@ -258,6 +312,15 @@ if __name__ == "__main__":
 
         ofiles=sorted(glob.glob(WORKDIR+CONFIG+'_'+CASE+'_[1-5][dhm]_*nc'))
         rfiles=sorted(glob.glob(WORKDIR+CONFIG+'_'+CASE+'_*_restart*.nc'))
+
+        #something bad maybe happened let's see if there's a NEMO error..
+        if ofiles==[] or rfiles==[]:
+            lg.error("")
+            lg.error("No output or restart files, looking for a NEMO error...")
+            p = subprocess.Popen("grep -A 4 '\''E R R'\'' ocean.output", stdout=subprocess.PIPE, shell=True)
+            (output, err) = p.communicate()
+            p_status = p.wait()
+            lg.info(output)
 
 
         assert(ofiles!=[]),"E R R O R: Didn't find any NEMO output files, STOP!"
@@ -397,7 +460,19 @@ if __name__ == "__main__":
 
             if str(NRUN)=='1':
                 handle.write('mv -v '+ WORKDIR + 'mesh_mask.nc '+'/nerc/n02/n02/chbull/RawData/NEMO/nemo_'+CONFIG+'_'+CASE+'/'+'\n')
+            
+            #for evolving cavity cases keep mesh_mask and bathy/isf
+            if FORCING_NUM==3 or FORCING_NUM==4:
+                if str(NRUN)=='1':
+                    mesh_out='/nerc/n02/n02/chbull/RawData/NEMO/nemo_'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/mesh_mask'+'_'+str(YEAR).zfill(4)+'.nc'
+                    handle.write('mv -v '+ '/nerc/n02/n02/chbull/RawData/NEMO/nemo_'+CONFIG+'_'+CASE+'/mesh_mask.nc '+mesh_out+'\n')
+                else:
+                    handle.write('mv -v '+ WORKDIR + 'mesh_mask.nc '+mesh_out+'\n')
 
+                bathy_out='/nerc/n02/n02/chbull/RawData/NEMO/nemo_'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/bathy_meter'+'_'+str(YEAR).zfill(4)+'.nc'
+                isf_out  ='/nerc/n02/n02/chbull/RawData/NEMO/nemo_'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/isf_draft_meter'+'_'+str(YEAR).zfill(4)+'.nc'
+                handle.write('mv -v '+ WORKDIR + 'bathy_meter.nc '+bathy_out+'\n')
+                handle.write('mv -v '+ WORKDIR + 'isf_draft_meter.nc '+isf_out+'\n')
 
         subprocess.call('chmod u+x '+WORKDIR+'cnemo_'+str(NRUN).zfill(4)+'.sh',shell=True)
         subprocess.call('qsub '+WORKDIR+'cnemo_'+str(NRUN).zfill(4)+'.sh',shell=True)

@@ -13,8 +13,8 @@
 
 ##-- User's choices START
 
-CONFIG='nemo_ISOMIP_oceanCOM_10'
-CASE='z'
+CONFIG='nemo_ISOMIP_oceanCOM_04'
+CASE='f'
 RDIR="/fs2/n02/n02/chbull/nemo/run"
 WORKDIR=${RDIR}/nemo_${CONFIG}_${CASE}
 
@@ -35,13 +35,13 @@ if [ $DEBUGJOB = TRUE ]
     NODES=1
     OCEANCORES=10
     XIOCORES=5
-    RHOURS=5
+    RHOURS=10
 fi
 
 PROJ='n02-FISSA'  
 
 #avoid weird char'
-DESC='Messing around trying to get ISOMIP Ocean3-4 experiments to go (third go looping on 10 days...)' 
+DESC='Messing around trying to get ISOMIP Ocean3-4 experiments to go (now with evolving bathy-isf)' 
 YEAR0=1
 YEAR_MAX=5
 #DDMM
@@ -54,7 +54,7 @@ WCONFIG=/fs2/n02/n02/chbull/nemo/bld_configs/input_MISOMIP
 FORCING_TYPE=COM
 #FORCING_TYPE=TYP
 
-FORCING_NUM=0
+FORCING_NUM=3
 
 FORCING=/work/n01/shared/core2
 
@@ -180,6 +180,31 @@ EOF
 
             ln -s namelist_ref_COM_2 namelist_ref
             ln -s namelist_cfg_COM_2 namelist_cfg
+
+        elif [ ${FORCING_NUM} -eq 3 ]; then
+            ln -s ${WCONFIG}/NEMO_COM/isomip+_NEMO_expt3_242_geom_recalve.nc bathy_meter_all.nc #contains all time-steps
+
+            echo ""
+            echo "WARNING: TEMPORARILY using dodgy files for NEMO_COM Ocean3"
+            echo ""
+            ln -s ${WCONFIG}/NEMO_COM/nemo_base_WARM-NEWFIX.nc TS_init.nc
+            ln -s ${WCONFIG}/NEMO_COM/nemo_base_WARM-NEWFIX.nc resto.nc
+
+            ln -s namelist_ref_COM_0 namelist_ref
+            ln -s namelist_cfg_COM_0 namelist_cfg
+
+        elif [ ${FORCING_NUM} -eq 4 ]; then
+            ln -s ${WCONFIG}/NEMO_COM/isomip+_NEMO_expt4_242_geom_recalve.nc bathy_meter_all.nc #contains all time-steps
+
+            echo ""
+            echo "WARNING: TEMPORARILY using dodgy files for NEMO_COM Ocean4"
+            echo ""
+            ln -s ${WCONFIG}/NEMO_COM/nemo_base_WARM-NEWFIX.nc TS_init.nc
+            ln -s ${WCONFIG}/NEMO_COM/nemo_base_WARM-NEWFIX.nc resto.nc
+
+            ln -s namelist_ref_COM_0 namelist_ref
+            ln -s namelist_cfg_COM_0 namelist_cfg
+
         fi 
     elif [ ${FORCING_TYPE} = "TYP" ]; then
         OCEANCORES=10
@@ -224,7 +249,7 @@ EOF
 
 fi
 
-sed -e "s/pppp/${PROJ}/g ; s/ssss/${STOCKDIR2}/g ; s/wwww/${WORKDIR2}/g ; s/cccc/${CONFIG}/g ; s/oooo/${CASE}/g ; s/zzzz/${DESC}/g ; s/Y0Y0/${YEAR0}/g ; s/YMYM/${YEAR_MAX}/g ; s/eeee/${OCEANCORES}/g ; s/ffff/${XIOCORES}/g ; s/gggg/${NODES}/g ; s/hhhh/${RHOURS}/g; s/jjjj/${RBUILD_NEMO2}/g ; s/yyyy/${FORCING_TYPE}/g " ${WORKDIR}/run_nemo_GENERIC.py > ${WORKDIR}/GoGoNEMO.py
+sed -e "s/pppp/${PROJ}/g ; s/ssss/${STOCKDIR2}/g ; s/wwww/${WORKDIR2}/g ; s/cccc/${CONFIG}/g ; s/oooo/${CASE}/g ; s/zzzz/${DESC}/g ; s/Y0Y0/${YEAR0}/g ; s/YMYM/${YEAR_MAX}/g ; s/eeee/${OCEANCORES}/g ; s/ffff/${XIOCORES}/g ; s/gggg/${NODES}/g ; s/hhhh/${RHOURS}/g; s/jjjj/${RBUILD_NEMO2}/g ; s/yyyy/${FORCING_TYPE}/g ; s/kkkk/${FORCING_NUM}/g " ${WORKDIR}/run_nemo_GENERIC.py > ${WORKDIR}/GoGoNEMO.py
 
 chmod +x ${WORKDIR}/GoGoNEMO.py 
 #export PYTHONPATH=/work/n02/n02/chbull/anaconda2/pkgs;export PATH=/work/n02/n02/chbull/anaconda2/bin:$PATH;source activate root
