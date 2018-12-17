@@ -1,0 +1,6 @@
+Date: 17.12.2018
+NEMO code modifications used for Ocean0-2 ISOMIP+
+
+Currently, only difference between ISOMIP_2 and ISOMIP is the restart file:
+    /fs2/n02/n02/chbull/nemo/models/MergedCode_9321_flx9855_remap9853_divgcorr9845_shlat9864/NEMOGCM/CONFIG/ISOMIP_2/MY_SRC/restart.F90
+which was changed because we run without ln_iscpl on the first year and need those fields for the restart.
