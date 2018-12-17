@@ -25,7 +25,9 @@ years=[\
 if paper_case=='20180814_isomip analysis':
     basefol='/home/chris/VBoxSHARED/'
     basefol='/home/chris/VBoxSHARED/ISOMIP/'
-    output_folder=basefol+'20180814_isomip analysis/analysis/'
+    basefol='/nerc/n02/n02/chbull/RawData/NEMO/isomip/isomip_interpd/'
+   
+    output_folder=basefol+'20180814_isomip_analysis/analysis/'
     # output_folder='/home/chris/VBoxSHARED/20180814_isomip analysis/analysis/'
     plot_outputs=output_folder+'plots/'
 
@@ -47,33 +49,35 @@ if paper_case=='20180814_isomip analysis':
     #  Comparing the robin's old and the new ISOMIP+ experiments..  #
     #################################################################
 
-    nemo_fols['Ocean0_COM_NEMO-UKESM1is-f']=[basefol+'Ocean0_COM_NEMO-UKESM1is-f/']
-    nemo_fols['Ocean0_TYP_NEMO-UKESM1is-f']=[basefol+'Ocean0_TYP_NEMO-UKESM1is-f/']
-    nemo_fols['Ocean0_COM_NEMO-UKMOGO7-E']=[basefol+'Ocean0_COM_NEMO-UKMOGO7-E/']
-    nemo_fols['Ocean0_TYP_NEMO-UKMOGO7-E']=[basefol+'Ocean0_TYP_NEMO-UKMOGO7-E/']
-    nemo_fols['Ocean0_COM_NEMO-UKMOGO7-C']=[basefol+'Ocean0_COM_NEMO-UKMOGO7-C/']
-    nemo_fols['Ocean0_TYP_NEMO-UKMOGO7-C']=[basefol+'Ocean0_TYP_NEMO-UKMOGO7-C/']
-    nemo_fols['Ocean0_COM_NEMO-UKMOGO6']=[basefol+'Ocean0_COM_NEMO-UKMOGO6/']
     # nemo_fols['Ocean0_TYP_NEMO-UKMOGO6']=[basefol+'Ocean0_TYP_NEMO-UKMOGO6/']
+    # nemo_fols['Ocean0_COM_NEMO-UKMOGO6']=[basefol+'Ocean0_COM_NEMO-UKMOGO6/']
+    # nemo_fols['Ocean0_TYP_NEMO-UKMOGO7-C']=[basefol+'Ocean0_TYP_NEMO-UKMOGO7-C/']
+    # nemo_fols['Ocean0_COM_NEMO-UKMOGO7-C']=[basefol+'Ocean0_COM_NEMO-UKMOGO7-C/']
+    # nemo_fols['Ocean0_TYP_NEMO-UKMOGO7-E']=[basefol+'Ocean0_TYP_NEMO-UKMOGO7-E/']
+    # nemo_fols['Ocean0_COM_NEMO-UKMOGO7-E']=[basefol+'Ocean0_COM_NEMO-UKMOGO7-E/']
+    # nemo_fols['Ocean0_TYP_NEMO-UKESM1is-f']=[basefol+'Ocean0_TYP_NEMO-UKESM1is-f/']
+    # nemo_fols['Ocean0_COM_NEMO-UKESM1is-f']=[basefol+'Ocean0_COM_NEMO-UKESM1is-f/']
+    # nemo_fols['Ocean0_TYP_NEMO-UKESM1is-f2']=[basefol+'Ocean0_TYP_NEMO-UKESM1is-f2/']
 
-    # nemo_fols['Ocean1_COM_NEMO-UKESM1is-f']=[basefol+'Ocean1_COM_NEMO-UKESM1is-f/']
-    # nemo_fols['Ocean1_TYP_NEMO-UKESM1is-f']=[basefol+'Ocean1_TYP_NEMO-UKESM1is-f/']
-    # nemo_fols['Ocean1_COM_NEMO-UKMOGO7-E']=[basefol+'Ocean1_COM_NEMO-UKMOGO7-E/']
-    # nemo_fols['Ocean1_TYP_NEMO-UKMOGO7-E']=[basefol+'Ocean1_TYP_NEMO-UKMOGO7-E/']
-    # nemo_fols['Ocean1_COM_NEMO-UKMOGO7-C']=[basefol+'Ocean1_COM_NEMO-UKMOGO7-C/']
-    # nemo_fols['Ocean1_TYP_NEMO-UKMOGO7-C']=[basefol+'Ocean1_TYP_NEMO-UKMOGO7-C/']
-    # nemo_fols['Ocean1_COM_NEMO-UKMOGO6']=[basefol+'Ocean1_COM_NEMO-UKMOGO6/']
     # nemo_fols['Ocean1_TYP_NEMO-UKMOGO6']=[basefol+'Ocean1_TYP_NEMO-UKMOGO6/']
+    # nemo_fols['Ocean1_COM_NEMO-UKMOGO6']=[basefol+'Ocean1_COM_NEMO-UKMOGO6/']
+    # nemo_fols['Ocean1_TYP_NEMO-UKMOGO7-C']=[basefol+'Ocean1_TYP_NEMO-UKMOGO7-C/']
+    # nemo_fols['Ocean1_COM_NEMO-UKMOGO7-C']=[basefol+'Ocean1_COM_NEMO-UKMOGO7-C/']
+    # nemo_fols['Ocean1_TYP_NEMO-UKMOGO7-E']=[basefol+'Ocean1_TYP_NEMO-UKMOGO7-E/']
+    # nemo_fols['Ocean1_COM_NEMO-UKMOGO7-E']=[basefol+'Ocean1_COM_NEMO-UKMOGO7-E/']
+    # nemo_fols['Ocean1_TYP_NEMO-UKESM1is-f']=[basefol+'Ocean1_TYP_NEMO-UKESM1is-f/']
+    # nemo_fols['Ocean1_COM_NEMO-UKESM1is-f']=[basefol+'Ocean1_COM_NEMO-UKESM1is-f/']
+    # nemo_fols['Ocean1_TYP_NEMO-UKESM1is-f2']=[basefol+'Ocean1_TYP_NEMO-UKESM1is-f2/']
 
-    # nemo_fols['Ocean2_COM_NEMO-UKESM1is-f']=[basefol+'Ocean2_COM_NEMO-UKESM1is-f/']
-    # nemo_fols['Ocean2_TYP_NEMO-UKESM1is-f']=[basefol+'Ocean2_TYP_NEMO-UKESM1is-f/']
-    # nemo_fols['Ocean2_COM_NEMO-UKMOGO7-E']=[basefol+'Ocean2_COM_NEMO-UKMOGO7-E/']
-    # nemo_fols['Ocean2_TYP_NEMO-UKMOGO7-E']=[basefol+'Ocean2_TYP_NEMO-UKMOGO7-E/']
-    # nemo_fols['Ocean2_COM_NEMO-UKMOGO7-C']=[basefol+'Ocean2_COM_NEMO-UKMOGO7-C/']
-    # nemo_fols['Ocean2_TYP_NEMO-UKMOGO7-C']=[basefol+'Ocean2_TYP_NEMO-UKMOGO7-C/']
-    # nemo_fols['Ocean2_COM_NEMO-UKMOGO6']=[basefol+'Ocean2_COM_NEMO-UKMOGO6/']
-    # nemo_fols['Ocean2_TYP_NEMO-UKMOGO6']=[basefol+'Ocean2_TYP_NEMO-UKMOGO6/']
-
+    nemo_fols['Ocean2_TYP_NEMO-UKMOGO6']=[basefol+'Ocean2_TYP_NEMO-UKMOGO6/']
+    nemo_fols['Ocean2_COM_NEMO-UKMOGO6']=[basefol+'Ocean2_COM_NEMO-UKMOGO6/']
+    nemo_fols['Ocean2_TYP_NEMO-UKMOGO7-C']=[basefol+'Ocean2_TYP_NEMO-UKMOGO7-C/']
+    nemo_fols['Ocean2_COM_NEMO-UKMOGO7-C']=[basefol+'Ocean2_COM_NEMO-UKMOGO7-C/']
+    nemo_fols['Ocean2_TYP_NEMO-UKMOGO7-E']=[basefol+'Ocean2_TYP_NEMO-UKMOGO7-E/']
+    nemo_fols['Ocean2_COM_NEMO-UKMOGO7-E']=[basefol+'Ocean2_COM_NEMO-UKMOGO7-E/']
+    nemo_fols['Ocean2_TYP_NEMO-UKESM1is-f']=[basefol+'Ocean2_TYP_NEMO-UKESM1is-f/']
+    nemo_fols['Ocean2_COM_NEMO-UKESM1is-f']=[basefol+'Ocean2_COM_NEMO-UKESM1is-f/']
+    nemo_fols['Ocean2_TYP_NEMO-UKESM1is-f2']=[basefol+'Ocean2_TYP_NEMO-UKESM1is-f2/']
 
 
     # nemo_fols['Ocean3_COM_NEMO-UKMOGO6']=[basefol+'Ocean3_COM_NEMO-UKMOGO6/']

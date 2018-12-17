@@ -128,7 +128,7 @@ if __name__ == "__main__":
                 ifiles=sorted(glob.glob(nemo_fols[exp][0]+'*.nc'))
                 assert(ifiles!=[]),"glob didn't find anything!"
                 assert(os.path.exists(ifiles[0])),"netCDF file does not exist!"
-                ifile=xr.open_dataset(ifiles[0])
+                ifile=xr.open_dataset(ifiles[0],decode_times=False)
 
                 # ivar=ifile[varname]
 
@@ -169,7 +169,7 @@ if __name__ == "__main__":
                 climits=get_climits(ifiles[0],varname)
 
             pout=plotoutputs+'comp_interpd/'+exp[0:6]+'_'+varname+'.png'
-            plotback=sm.Grid(plotdict,(4,2),dimlabels=dimlab,globalcbar='jet',clevels=20,sharex=True,sharey=True,outputpath=pout,globalclimits=climits,figtit=figtits[varname],titloc=3)
+            plotback=sm.Grid(plotdict,(5,2),dimlabels=dimlab,globalcbar='jet',clevels=20,sharex=True,sharey=True,outputpath=pout,globalclimits=climits,figtit=figtits[varname],titloc=3)
             print pout
             # __import__('pdb').set_trace()
 
