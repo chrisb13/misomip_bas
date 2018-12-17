@@ -77,7 +77,7 @@ def get_ISOMIP_timeslice(slice,wkdir):
     :wkdir: WORKDIR 
     :returns: 
     """
-    lg.info("Creating bathy_meter.nc and isf_draft_meter.nc for .nc timestep: "+str(slice))
+    lg.info("Creating bathy_meter.nc and isf_draft_meter.nc for Ocean3-4 timestep: "+str(slice))
 
     ncin=wkdir+'bathy_meter_all.nc'
     assert(os.path.exists(ncin)),"can't find bathy_meter_all.nc, was it correctly linked by production_nemo_ARCHER.sh?"
@@ -154,7 +154,7 @@ if __name__ == "__main__":
             NITEND=str(int(NITENDM1) + int(NDAYS) * 86400 / int(RN_DT))
 
             fileHandle = open (WORKDIR+ 'prod_nemo.db',"w" )
-            fileHandle.write("1 "+str(YEAR0)+" 0 \n")
+            fileHandle.write("0001 "+str(YEAR0)+" 0 \n")
             fileHandle.close()
 
             YEAR=YEAR0
@@ -209,6 +209,11 @@ if __name__ == "__main__":
             get_ISOMIP_timeslice(int(NRUN),WORKDIR)
             #always want a mesh_mask with the moving geometry experiments..
             nml_patch['namdom']={'nn_msh':1}
+
+            if NRUN>1:
+                nml_patch['namrun']['ln_iscpl']=True
+                nml_patch['namsbc_iscpl']={'nn_drown':50} # this wasn't in the cfg but it seems to patch ok!
+
       
         lg.info("")
         lg.info("Resulting patch for namelist_ref: "+str(nml_patch['namrun']))
@@ -333,6 +338,12 @@ if __name__ == "__main__":
         for f in rfiles:
             shutil.move(f, rdir+os.path.basename(f))
 
+        #for evolving cavity cases keep mesh_mask and bathy/isf
+        if FORCING_NUM==3 or FORCING_NUM==4:
+            shutil.move(WORKDIR+'isf_draft_meter.nc', odir+'isf_draft_meter'+'_'+str(YEAR).zfill(4)+'.nc')
+            shutil.move(WORKDIR+'bathy_meter.nc', odir+'bathy_meter'+'_'+str(YEAR).zfill(4)+'.nc')
+            shutil.move(WORKDIR+'mesh_mask.nc', odir+'mesh_mask'+'_'+str(YEAR).zfill(4)+'.nc')
+
         # initfiles=sorted(glob.glob(WORKDIR+'output.init*.nc'))
         # if initfiles==[]: lg.warning("Didn't find any NEMO init files.")
         # if initfiles!=[]:
@@ -452,28 +463,15 @@ if __name__ == "__main__":
             #write to RDF
 	    handle.write('echo "Finished compressing, WRITE to RDF"'+ '\n')
 
-            handle.write('mkdir -p '+'/nerc/n02/n02/chbull/RawData/NEMO/nemo_'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/'+'\n')
-            handle.write('mv -v '+ odir + '*.nc '+'/nerc/n02/n02/chbull/RawData/NEMO/nemo_'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/'+'\n')
-            handle.write('mv -v '+ odir + 'namelist* '+'/nerc/n02/n02/chbull/RawData/NEMO/nemo_'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/'+'\n')
-            handle.write('mv -v '+ odir + 'ocean* '+'/nerc/n02/n02/chbull/RawData/NEMO/nemo_'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/'+'\n')
-            handle.write('mv -v '+ odir+'GoGGoNEMO_'+str(NRUN).zfill(4)+'.sh '+'/nerc/n02/n02/chbull/RawData/NEMO/nemo_'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/'+'\n')
+            handle.write('mkdir -p '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/'+'\n')
+            handle.write('mv -v '+ odir + '*.nc '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/'+'\n')
+            handle.write('mv -v '+ odir + 'namelist* '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/'+'\n')
+            handle.write('mv -v '+ odir + 'ocean* '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/'+'\n')
+            handle.write('mv -v '+ odir+'GoGGoNEMO_'+str(NRUN).zfill(4)+'.sh '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/'+'\n')
 
             if str(NRUN)=='1':
-                handle.write('mv -v '+ WORKDIR + 'mesh_mask.nc '+'/nerc/n02/n02/chbull/RawData/NEMO/nemo_'+CONFIG+'_'+CASE+'/'+'\n')
+                handle.write('mv -v '+ WORKDIR + 'mesh_mask.nc '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+'\n')
             
-            #for evolving cavity cases keep mesh_mask and bathy/isf
-            if FORCING_NUM==3 or FORCING_NUM==4:
-                if str(NRUN)=='1':
-                    mesh_out='/nerc/n02/n02/chbull/RawData/NEMO/nemo_'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/mesh_mask'+'_'+str(YEAR).zfill(4)+'.nc'
-                    handle.write('mv -v '+ '/nerc/n02/n02/chbull/RawData/NEMO/nemo_'+CONFIG+'_'+CASE+'/mesh_mask.nc '+mesh_out+'\n')
-                else:
-                    handle.write('mv -v '+ WORKDIR + 'mesh_mask.nc '+mesh_out+'\n')
-
-                bathy_out='/nerc/n02/n02/chbull/RawData/NEMO/nemo_'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/bathy_meter'+'_'+str(YEAR).zfill(4)+'.nc'
-                isf_out  ='/nerc/n02/n02/chbull/RawData/NEMO/nemo_'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/isf_draft_meter'+'_'+str(YEAR).zfill(4)+'.nc'
-                handle.write('mv -v '+ WORKDIR + 'bathy_meter.nc '+bathy_out+'\n')
-                handle.write('mv -v '+ WORKDIR + 'isf_draft_meter.nc '+isf_out+'\n')
-
         subprocess.call('chmod u+x '+WORKDIR+'cnemo_'+str(NRUN).zfill(4)+'.sh',shell=True)
         subprocess.call('qsub '+WORKDIR+'cnemo_'+str(NRUN).zfill(4)+'.sh',shell=True)
 
@@ -490,9 +488,9 @@ if __name__ == "__main__":
 	    frestart= open(WORKDIR+'mv_restarts_rdf.sh',append_write)
 
 	frestart.write(''+'\n')
-        frestart.write('mkdir -p '+'/nerc/n02/n02/chbull/RawData/NEMO/nemo_'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/restarts/'+'\n')
-	frestart.write('mv -v '+rdir+'*.nc '+'/nerc/n02/n02/chbull/RawData/NEMO/nemo_'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/restarts/'+'\n')
-	frestart.write('#mv -v '+'/nerc/n02/n02/chbull/RawData/NEMO/nemo_'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/restarts/ '+rdir+' # to undo \n')
+        frestart.write('mkdir -p '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/restarts/'+'\n')
+	frestart.write('mv -v '+rdir+'*.nc '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/restarts/'+'\n')
+	frestart.write('#mv -v '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/restarts/ '+rdir+' # to undo \n')
 	frestart.write(''+'\n')
         subprocess.call('chmod u+x '+WORKDIR+'mv_restarts_rdf.sh',shell=True)
 	frestart.close()

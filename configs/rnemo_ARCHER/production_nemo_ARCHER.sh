@@ -13,10 +13,10 @@
 
 ##-- User's choices START
 
-CONFIG='nemo_ISOMIP_oceanCOM_04'
-CASE='f'
+CONFIG='MISOMIP_COM'
+CASE='04f'
 RDIR="/fs2/n02/n02/chbull/nemo/run"
-WORKDIR=${RDIR}/nemo_${CONFIG}_${CASE}
+WORKDIR=${RDIR}/${CONFIG}_${CASE}
 
 DEBUGJOB=FALSE
 #DEBUGJOB=TRUE
@@ -35,15 +35,16 @@ if [ $DEBUGJOB = TRUE ]
     NODES=1
     OCEANCORES=10
     XIOCORES=5
-    RHOURS=10
+    RHOURS=24
 fi
 
 PROJ='n02-FISSA'  
+PROJ='n02-bas'   #So use "n02-bas as you're already in that group" - email: Jul 16, 2018, 12:11 PM
 
 #avoid weird char'
-DESC='Messing around trying to get ISOMIP Ocean3-4 experiments to go (now with evolving bathy-isf)' 
+DESC='ISOMIPplus Ocean4 experiment (with evolving bathy-isf)' 
 YEAR0=1
-YEAR_MAX=5
+YEAR_MAX=101
 #DDMM
 
 STOCKDIR="/nerc/n02/n02/chbull/RawData/NEMO"  #- restart and output directory on rdf
@@ -54,7 +55,7 @@ WCONFIG=/fs2/n02/n02/chbull/nemo/bld_configs/input_MISOMIP
 FORCING_TYPE=COM
 #FORCING_TYPE=TYP
 
-FORCING_NUM=3
+FORCING_NUM=4
 
 FORCING=/work/n01/shared/core2
 
@@ -141,7 +142,8 @@ EOF
 
     #nemo and xios
     #ln -s ${NEMOdir}/CONFIG/${CONFIG}/BLD/bin/nemo.exe nemo.exe
-    ln -s /fs2/n02/n02/chbull/nemo/models/MergedCode_9321_flx9855_remap9853_divgcorr9845_shlat9864/NEMOGCM/CONFIG/ISOMIP/BLD/bin/nemo.exe nemo.exe
+    #ln -s /fs2/n02/n02/chbull/nemo/models/MergedCode_9321_flx9855_remap9853_divgcorr9845_shlat9864/NEMOGCM/CONFIG/ISOMIP/BLD/bin/nemo.exe nemo.exe
+    ln -s /fs2/n02/n02/chbull/nemo/models/MergedCode_9321_flx9855_remap9853_divgcorr9845_shlat9864/NEMOGCM/CONFIG/ISOMIP_2/BLD/bin/nemo.exe nemo.exe
 
     #ln -s /fs2/n02/n02/chbull/nemo/models/XIOS/bin/xios_server.exe xios_server.exe
     ln -s /fs2/n02/n02/chbull/nemo/models/XIOSv1/bin/xios_server.exe xios_server.exe
@@ -199,8 +201,8 @@ EOF
             echo ""
             echo "WARNING: TEMPORARILY using dodgy files for NEMO_COM Ocean4"
             echo ""
-            ln -s ${WCONFIG}/NEMO_COM/nemo_base_WARM-NEWFIX.nc TS_init.nc
-            ln -s ${WCONFIG}/NEMO_COM/nemo_base_WARM-NEWFIX.nc resto.nc
+            ln -s ${WCONFIG}/NEMO_COM/nemo_base_COLD-NEWFIX.nc TS_init.nc
+            ln -s ${WCONFIG}/NEMO_COM/nemo_base_COLD-NEWFIX.nc resto.nc
 
             ln -s namelist_ref_COM_0 namelist_ref
             ln -s namelist_cfg_COM_0 namelist_cfg
