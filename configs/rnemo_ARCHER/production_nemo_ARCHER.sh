@@ -13,7 +13,7 @@
 
 ##-- User's choices START
 
-CONFIG='MISOMIP_COM'
+CONFIG='MISOMIP_TYP'
 CASE='04f'
 RDIR="/fs2/n02/n02/chbull/nemo/run"
 WORKDIR=${RDIR}/${CONFIG}_${CASE}
@@ -53,7 +53,7 @@ WCONFIG=/fs2/n02/n02/chbull/nemo/bld_configs/input_MISOMIP
 
 #change the case name too!
 FORCING_TYPE=COM
-#FORCING_TYPE=TYP
+FORCING_TYPE=TYP
 
 FORCING_NUM=4
 
@@ -186,9 +186,6 @@ EOF
         elif [ ${FORCING_NUM} -eq 3 ]; then
             ln -s ${WCONFIG}/NEMO_COM/isomip+_NEMO_expt3_242_geom_recalve.nc bathy_meter_all.nc #contains all time-steps
 
-            echo ""
-            echo "WARNING: TEMPORARILY using dodgy files for NEMO_COM Ocean3"
-            echo ""
             ln -s ${WCONFIG}/NEMO_COM/nemo_base_WARM-NEWFIX.nc TS_init.nc
             ln -s ${WCONFIG}/NEMO_COM/nemo_base_WARM-NEWFIX.nc resto.nc
 
@@ -198,9 +195,6 @@ EOF
         elif [ ${FORCING_NUM} -eq 4 ]; then
             ln -s ${WCONFIG}/NEMO_COM/isomip+_NEMO_expt4_242_geom_recalve.nc bathy_meter_all.nc #contains all time-steps
 
-            echo ""
-            echo "WARNING: TEMPORARILY using dodgy files for NEMO_COM Ocean4"
-            echo ""
             ln -s ${WCONFIG}/NEMO_COM/nemo_base_COLD-NEWFIX.nc TS_init.nc
             ln -s ${WCONFIG}/NEMO_COM/nemo_base_COLD-NEWFIX.nc resto.nc
 
@@ -239,6 +233,24 @@ EOF
 
             ln -s namelist_ref_TYP_2 namelist_ref
             ln -s namelist_cfg_TYP_2 namelist_cfg
+
+        elif [ ${FORCING_NUM} -eq 3 ]; then
+            ln -s ${WCONFIG}/NEMO_TYP/bathy_isf_meter_expt3_TYP_CALVE.nc bathy_meter_all.nc #contains all time-steps
+
+            ln -s ${WCONFIG}/NEMO_TYP/nemo_base_WARM-NEWFIX.nc TS_init.nc
+            ln -s ${WCONFIG}/NEMO_TYP/nemo_base_WARM-NEWFIX.nc resto.nc
+
+            ln -s namelist_ref_TYP_0 namelist_ref
+            ln -s namelist_cfg_TYP_0 namelist_cfg
+
+        elif [ ${FORCING_NUM} -eq 4 ]; then
+            ln -s ${WCONFIG}/NEMO_TYP/bathy_isf_meter_expt4_TYP_CALVE.nc bathy_meter_all.nc #contains all time-steps
+
+            ln -s ${WCONFIG}/NEMO_TYP/nemo_base_COLD-NEWFIX.nc  TS_init.nc
+            ln -s ${WCONFIG}/NEMO_TYP/nemo_base_COLD-NEWFIX.nc  resto.nc
+
+            ln -s namelist_ref_TYP_0 namelist_ref
+            ln -s namelist_cfg_TYP_0 namelist_cfg
         fi 
 
         #rm ${WORKDIR}/namelist_ref_*
@@ -277,9 +289,9 @@ cat << 'EOF' > ${WORKDIR}/GoNEMO.sh
 #PBS -N WED025-log
 ##PBS -j oe wwww/
 #PBS -l select=gggg
-#PBS -l walltime=hhhh:00:00
-##PBS -l walltime=48:00:00
-##PBS -q long
+##PBS -l walltime=hhhh:00:00
+#PBS -l walltime=48:00:00
+#PBS -q long
 #PBS -mb -M chbull@bas.ac.uk
 
 #FYI
