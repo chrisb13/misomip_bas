@@ -14,17 +14,17 @@
 ##-- User's choices START
 
 CONFIG='MISOMIP_TYP'
-CASE='04f'
+CASE='00f'
 RDIR="/fs2/n02/n02/chbull/nemo/run"
 WORKDIR=${RDIR}/${CONFIG}_${CASE}
 
 DEBUGJOB=FALSE
-#DEBUGJOB=TRUE
+DEBUGJOB=TRUE
 if [ $DEBUGJOB = TRUE ]
     then
     echo "Running a SHORT debug job"
     NODES=1
-    OCEANCORES=10
+    #OCEANCORES=10     #this is hard-coded because of the namelists
     XIOCORES=4
     RHOURS=0
   else
@@ -33,7 +33,7 @@ if [ $DEBUGJOB = TRUE ]
     #OCEANCORES=300
     #XIOCORES=4
     NODES=1
-    OCEANCORES=10
+    #OCEANCORES=10     #this is hard-coded because of the namelists
     XIOCORES=5
     RHOURS=24
 fi
@@ -55,7 +55,7 @@ WCONFIG=/fs2/n02/n02/chbull/nemo/bld_configs/input_MISOMIP
 FORCING_TYPE=COM
 FORCING_TYPE=TYP
 
-FORCING_NUM=4
+FORCING_NUM=0
 
 FORCING=/work/n01/shared/core2
 
@@ -203,7 +203,7 @@ EOF
 
         fi 
     elif [ ${FORCING_TYPE} = "TYP" ]; then
-        OCEANCORES=10
+        OCEANCORES=20
         if [ ${FORCING_NUM} -eq 0 ]; then
             ln -s ${WCONFIG}/NEMO_TYP/bathy_isf_meter_expt1_TYP_CALVE.nc isf_draft_meter.nc
             ln -s ${WCONFIG}/NEMO_TYP/bathy_isf_meter_expt1_TYP_CALVE.nc bathy_meter.nc
