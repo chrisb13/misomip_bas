@@ -135,6 +135,9 @@ if __name__ == "__main__":
         NDAYS=5
         # NDAYS=32
         NDAYS=365
+
+        #because 'nn_leapy':30 our years are 360 days!
+        NDAYS=360
         lg.info("We are running with NDAYS: "+ str(NDAYS))
 
         # ##-- calculate corresponding number of time steps for NEMO:
