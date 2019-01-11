@@ -217,7 +217,47 @@ if __name__ == "__main__":
                 nml_patch['namrun']['ln_iscpl']=True
                 nml_patch['namsbc_iscpl']={'nn_drown':50} # this wasn't in the cfg but it seems to patch ok!
 
-      
+            if OCEANCORES==20:
+                lg.info("Hard-wiring the proc-decomp for square workloads on 20 procs (normally used for TYP)") 
+                nml_patch['nammpp']={}
+                nml_patch['nammpp']['jpni']=2
+                nml_patch['nammpp']['jpnj']=10
+                nml_patch['nammpp']['jpnij']=20
+            elif OCEANCORES==12:
+                lg.info("Hard-wiring the proc-decomp for Antony's test-case of 12 cores") 
+                #this ran on COM! But is slower than 24 cores on one node
+                nml_patch['nammpp']={}
+                nml_patch['nammpp']['jpni']=0
+                nml_patch['nammpp']['jpnj']=0
+                nml_patch['nammpp']['jpnij']=0
+
+            elif OCEANCORES==24:
+                lg.info("Hard-wiring the proc-decomp for square workloads on 48 procs (normally used for COM)") 
+                nml_patch['nammpp']={}
+                nml_patch['nammpp']['jpni']=12
+                nml_patch['nammpp']['jpnj']=2
+                nml_patch['nammpp']['jpnij']=24
+            elif OCEANCORES==48:
+                lg.info("Hard-wiring the proc-decomp for square workloads on 48 procs (normally used for COM)") 
+                nml_patch['nammpp']={}
+                # nml_patch['nammpp']['jpni']=24
+                # nml_patch['nammpp']['jpnj']=2
+                # nml_patch['nammpp']['jpnij']=48
+                nml_patch['nammpp']['jpni']=0
+                nml_patch['nammpp']['jpnj']=0
+                nml_patch['nammpp']['jpnij']=0
+                #this didn't work
+            elif OCEANCORES==96:
+                lg.info("Hard-wiring the proc-decomp for square workloads on 48 procs (normally used for COM)") 
+                nml_patch['nammpp']={}
+                # nml_patch['nammpp']['jpni']=24
+                # nml_patch['nammpp']['jpnj']=4
+                # nml_patch['nammpp']['jpnij']=96
+                nml_patch['nammpp']['jpni']=0
+                nml_patch['nammpp']['jpnj']=0
+                nml_patch['nammpp']['jpnij']=0
+                #this didn't work
+
         lg.info("")
         lg.info("Resulting patch for namelist_ref: "+str(nml_patch['namrun']))
         f90nml.patch(nmlpath, nml_patch, out_path=nmlpath+'_new')
@@ -249,7 +289,7 @@ if __name__ == "__main__":
 
             #normal nemo run
             # handle.write('aprun -b -n '+str(XIOCORES)+' -N '+str(XIOCORES)+' ./xios_server.exe : -n '+ str(OCEANCORES)+ ' -N 24 ./nemo.exe'+'\n')
-            handle.write('aprun -n '+ str(OCEANCORES)+ ' -N ' +str(OCEANCORES)+ ' ./nemo.exe'+'\n')
+            handle.write('aprun -n '+ str(OCEANCORES)+ ' -N ' +str(24)+ ' ./nemo.exe'+'\n')
 
             handle.write(''+'\n')
             handle.write('echo "NEMO run finished, will now try and re-assemble restart and mesh_mask files..."'+'\n')

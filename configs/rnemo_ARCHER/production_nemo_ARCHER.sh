@@ -14,16 +14,16 @@
 ##-- User's choices START
 
 CONFIG='ISOMIP_COM'
-CASE='03a'
+CASE='99a'
 RDIR="/fs2/n02/n02/chbull/nemo/run"
 WORKDIR=${RDIR}/${CONFIG}_${CASE}
 
 DEBUGJOB=FALSE
-#DEBUGJOB=TRUE
+DEBUGJOB=TRUE
 if [ $DEBUGJOB = TRUE ]
     then
     echo "Running a SHORT debug job"
-    NODES=1
+    NODES=1            #this is hard-coded because of the namelists
     #OCEANCORES=10     #this is hard-coded because of the namelists
     XIOCORES=4
     RHOURS=0
@@ -32,7 +32,7 @@ if [ $DEBUGJOB = TRUE ]
     #NODES=14
     #OCEANCORES=300
     #XIOCORES=4
-    NODES=1
+    NODES=2            #this is hard-coded because of the namelists
     #OCEANCORES=10     #this is hard-coded because of the namelists
     XIOCORES=5
     RHOURS=5
@@ -42,7 +42,7 @@ PROJ='n02-FISSA'
 PROJ='n02-bas'   #So use "n02-bas as you're already in that group" - email: Jul 16, 2018, 12:11 PM
 
 #avoid weird char'
-DESC='ISOMIPplus Ocean3 experiment with fixed NDAYS of 360' 
+DESC='ISOMIPplus Ocean3 experiment with fixed NDAYS of 360, testing out doubling the cores for COM' 
 YEAR0=1
 YEAR_MAX=101
 #DDMM
@@ -155,6 +155,7 @@ EOF
     echo "We are doing ocean number: ${FORCING_NUM}"
     if [ ${FORCING_TYPE} = "COM" ]; then
         OCEANCORES=24
+        NODES=1
         if [ ${FORCING_NUM} -eq 0 ]; then
             ln -s ${WCONFIG}/NEMO_COM/isomip+_NEMO_expt1_242_geom.nc isf_draft_meter.nc
             ln -s ${WCONFIG}/NEMO_COM/isomip+_NEMO_expt1_242_geom.nc bathy_meter.nc
@@ -204,6 +205,7 @@ EOF
         fi 
     elif [ ${FORCING_TYPE} = "TYP" ]; then
         OCEANCORES=20
+        NODES=1
         if [ ${FORCING_NUM} -eq 0 ]; then
             ln -s ${WCONFIG}/NEMO_TYP/bathy_isf_meter_expt1_TYP_CALVE.nc isf_draft_meter.nc
             ln -s ${WCONFIG}/NEMO_TYP/bathy_isf_meter_expt1_TYP_CALVE.nc bathy_meter.nc
@@ -289,9 +291,9 @@ cat << 'EOF' > ${WORKDIR}/GoNEMO.sh
 #PBS -N WED025-log
 ##PBS -j oe wwww/
 #PBS -l select=gggg
-##PBS -l walltime=hhhh:00:00
-#PBS -l walltime=48:00:00
-#PBS -q long
+#PBS -l walltime=hhhh:00:00
+##PBS -l walltime=48:00:00
+##PBS -q long
 #PBS -mb -M chbull@bas.ac.uk
 
 #FYI
