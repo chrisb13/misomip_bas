@@ -13,13 +13,13 @@
 
 ##-- User's choices START
 
-CONFIG='ISOMIP_COM'
-CASE='99a'
+CONFIG='ISOMIP_TYP'
+CASE='tosht_Oce0b'
 RDIR="/fs2/n02/n02/chbull/nemo/run"
 WORKDIR=${RDIR}/${CONFIG}_${CASE}
 
 DEBUGJOB=FALSE
-DEBUGJOB=TRUE
+#DEBUGJOB=TRUE
 if [ $DEBUGJOB = TRUE ]
     then
     echo "Running a SHORT debug job"
@@ -42,7 +42,7 @@ PROJ='n02-FISSA'
 PROJ='n02-bas'   #So use "n02-bas as you're already in that group" - email: Jul 16, 2018, 12:11 PM
 
 #avoid weird char'
-DESC='ISOMIPplus Ocean3 experiment with fixed NDAYS of 360, testing out doubling the cores for COM' 
+DESC='Ocean0 TYP but with the new change in dz to compare to the tosh discritisation'
 YEAR0=1
 YEAR_MAX=101
 #DDMM
@@ -53,9 +53,9 @@ WCONFIG=/fs2/n02/n02/chbull/nemo/bld_configs/input_MISOMIP
 
 #change the case name too!
 FORCING_TYPE=COM
-#FORCING_TYPE=TYP
+FORCING_TYPE=TYP
 
-FORCING_NUM=3
+FORCING_NUM=0
 
 FORCING=/work/n01/shared/core2
 
@@ -63,6 +63,8 @@ NEMOdir="/fs2/n02/n02/chbull/nemo/models/MergedCode_9321_flx9855_remap9853_divgc
 
 #make sure you've compiled this!
 RBUILD_NEMO=${NEMOdir}/TOOLS/REBUILD_NEMO/rebuild_nemo
+#NEMO_EXE=/fs2/n02/n02/chbull/nemo/models/MergedCode_9321_flx9855_remap9853_divgcorr9845_shlat9864/NEMOGCM/CONFIG/ISOMIP_2/BLD/bin/nemo.exe
+NEMO_EXE=/fs2/n02/n02/chbull/nemo/models/MergedCode_9321_flx9855_remap9853_divgcorr9845_shlat9864/NEMOGCM/CONFIG/ISOMIP_3/BLD/bin/nemo.exe
 
 DATE=`date '+%Y-%m-%d %H:%M:%S'`
 
@@ -76,6 +78,7 @@ echo "*          NEMO SIMULATION                          "
 echo "*   project $PROJ                                   "
 echo "*   config  $CONFIG                                 "
 echo "*   wconfig $WCONFIG                                "
+echo "*   NEMO    $NEMO_EXE                               "
 echo "*   case    $CASE                                   "
 echo "*   desc    $DESC                                   "
 echo "****************************************************"
@@ -124,6 +127,7 @@ if [ -d "$WORKDIR" ]; then
     *   STOCKDIR  $STOCKDIR                             *
     *   INPUTDIR  $INPUTDIR                             *
     *   WCONFIG   $WCONFIG                              *
+    *   NEMO      $NEMO_EXE                             *
     *   FORCING   $FORCING                              *
     *   FORCING_TYPE   $FORCING_TYPE                              *
     *   NEMOdir   $NEMOdir                              *
@@ -143,7 +147,12 @@ EOF
     #nemo and xios
     #ln -s ${NEMOdir}/CONFIG/${CONFIG}/BLD/bin/nemo.exe nemo.exe
     #ln -s /fs2/n02/n02/chbull/nemo/models/MergedCode_9321_flx9855_remap9853_divgcorr9845_shlat9864/NEMOGCM/CONFIG/ISOMIP/BLD/bin/nemo.exe nemo.exe
-    ln -s /fs2/n02/n02/chbull/nemo/models/MergedCode_9321_flx9855_remap9853_divgcorr9845_shlat9864/NEMOGCM/CONFIG/ISOMIP_2/BLD/bin/nemo.exe nemo.exe
+    ln -s ${NEMO_EXE} nemo.exe
+
+
+    # testing the dz method for the losh boundary layer, see: /fs2/n02/n02/chbull/nemo/models/MergedCode_9321_flx9855_remap9853_divgcorr9845_shlat9864/NEMOGCM/CONFIG/ISOMIP_3/MY_SRC/sbcisf.F90
+    echo "W A R N I N G: We are using new version of NEMO (ISOMIP_3) ^^ "
+    ln -s ${NEMO_EXE} nemo.exe
 
     #ln -s /fs2/n02/n02/chbull/nemo/models/XIOS/bin/xios_server.exe xios_server.exe
     ln -s /fs2/n02/n02/chbull/nemo/models/XIOSv1/bin/xios_server.exe xios_server.exe

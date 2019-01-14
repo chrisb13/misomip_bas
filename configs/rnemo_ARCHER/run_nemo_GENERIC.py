@@ -132,9 +132,9 @@ if __name__ == "__main__":
     while int(YEAR) <= int(YEAR_MAX):
         # lg.info("Currently working on year: " + str(YEAR))
 
-        NDAYS=5
+        # NDAYS=5
         # NDAYS=32
-        NDAYS=365
+        # NDAYS=365
 
         #because 'nn_leapy':30 our years are 360 days!
         NDAYS=360
@@ -289,7 +289,10 @@ if __name__ == "__main__":
 
             #normal nemo run
             # handle.write('aprun -b -n '+str(XIOCORES)+' -N '+str(XIOCORES)+' ./xios_server.exe : -n '+ str(OCEANCORES)+ ' -N 24 ./nemo.exe'+'\n')
-            handle.write('aprun -n '+ str(OCEANCORES)+ ' -N ' +str(24)+ ' ./nemo.exe'+'\n')
+            if OCEANCORES>=24:
+                handle.write('aprun -n '+ str(OCEANCORES)+ ' -N ' +str(24)+ ' ./nemo.exe'+'\n')
+            else:
+                handle.write('aprun -n '+ str(OCEANCORES)+ ' -N ' +str(OCEANCORES)+ ' ./nemo.exe'+'\n')
 
             handle.write(''+'\n')
             handle.write('echo "NEMO run finished, will now try and re-assemble restart and mesh_mask files..."'+'\n')
@@ -514,6 +517,12 @@ if __name__ == "__main__":
 
             if str(NRUN)=='1':
                 handle.write('mv -v '+ WORKDIR + 'mesh_mask.nc '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+'\n')
+
+            #r'sync the run to the shared folder after every year it goes... (so Antony/Robin can see it..)
+            handle.write('rsync -avz --progress /nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+' ' + '/nerc/n02/shared/chbull/MISOMIP'+'\n')
+            handle.write('chmod a+rwx '+'/nerc/n02/shared/chbull/MISOMIP/'+CONFIG+'_'+CASE+'/ '+'\n')
+            handle.write('chmod a+rwx '+'/nerc/n02/shared/chbull/MISOMIP/'+CONFIG+'_'+CASE+'/* '+'\n')
+            handle.write('chmod a+rwx '+'/nerc/n02/shared/chbull/MISOMIP/'+CONFIG+'_'+CASE+'/*/* '+'\n')
             
         subprocess.call('chmod u+x '+WORKDIR+'cnemo_'+str(NRUN).zfill(4)+'.sh',shell=True)
         subprocess.call('qsub '+WORKDIR+'cnemo_'+str(NRUN).zfill(4)+'.sh',shell=True)
