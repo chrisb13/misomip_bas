@@ -335,6 +335,17 @@ if __name__ == "__main__":
                 handle.write('cd ..'+'\n')
                 handle.write('rm -r tempo/'+'\n')
 
+            handle.write(''+'\n')
+            handle.write('echo "NEMO stuff finished, will now try and do the BISICLES stuff"'+'\n')
+            handle.write('#this was the only way robin and I found to kill my anaconda environment.'+'\n')
+            handle.write('#cd is important otherwise wont find inputs file or python path change'+'\n')
+            handle.write('cd /fs2/n02/n02/chbull/nemo/sandbox_robin/MISOMIP_COM_fake'+'\n')
+            handle.write('module load python-compute'+'\n')
+            handle.write('export PYTHONPATH=.:$PYTHONPATH'+'\n')
+            handle.write('aprun -n 1 /work/n02/shared/cornford/UniCiCles_rss_ukesm/BISICLES/code/exec2D/driver2d.Linux.64.CC.ftn.OPT.MPI.GNU.DY.ex inputs.MMP.69'+'\n')
+            handle.write(''+'\n')
+
+
         subprocess.call('chmod u+x '+rnemo,shell=True)
 
         lg.info("Launching NEMO with the following script: ")
