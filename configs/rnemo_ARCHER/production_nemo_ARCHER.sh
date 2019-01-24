@@ -13,8 +13,8 @@
 
 ##-- User's choices START
 
-CONFIG='ISOMIP_TYP'
-CASE='tosht_Oce0b'
+CONFIG='ISOMIP_COM'
+CASE='bisicles04'
 RDIR="/fs2/n02/n02/chbull/nemo/run"
 WORKDIR=${RDIR}/${CONFIG}_${CASE}
 
@@ -32,7 +32,7 @@ if [ $DEBUGJOB = TRUE ]
     #NODES=14
     #OCEANCORES=300
     #XIOCORES=4
-    NODES=2            #this is hard-coded because of the namelists
+    NODES=1            #this is hard-coded because of the namelists
     #OCEANCORES=10     #this is hard-coded because of the namelists
     XIOCORES=5
     RHOURS=5
@@ -42,9 +42,9 @@ PROJ='n02-FISSA'
 PROJ='n02-bas'   #So use "n02-bas as you're already in that group" - email: Jul 16, 2018, 12:11 PM
 
 #avoid weird char'
-DESC='Ocean0 TYP but with the new change in dz to compare to the tosh discritisation'
+DESC='Ocean0 COM BISICLES_CPL test case'
 YEAR0=1
-YEAR_MAX=101
+YEAR_MAX=2
 #DDMM
 
 STOCKDIR="/nerc/n02/n02/chbull/RawData/NEMO"  #- restart and output directory on rdf
@@ -53,7 +53,7 @@ WCONFIG=/fs2/n02/n02/chbull/nemo/bld_configs/input_MISOMIP
 
 #change the case name too!
 FORCING_TYPE=COM
-FORCING_TYPE=TYP
+#FORCING_TYPE=TYP
 
 FORCING_NUM=0
 
@@ -63,10 +63,14 @@ NEMOdir="/fs2/n02/n02/chbull/nemo/models/MergedCode_9321_flx9855_remap9853_divgc
 
 #make sure you've compiled this!
 RBUILD_NEMO=${NEMOdir}/TOOLS/REBUILD_NEMO/rebuild_nemo
-#NEMO_EXE=/fs2/n02/n02/chbull/nemo/models/MergedCode_9321_flx9855_remap9853_divgcorr9845_shlat9864/NEMOGCM/CONFIG/ISOMIP_2/BLD/bin/nemo.exe
-NEMO_EXE=/fs2/n02/n02/chbull/nemo/models/MergedCode_9321_flx9855_remap9853_divgcorr9845_shlat9864/NEMOGCM/CONFIG/ISOMIP_3/BLD/bin/nemo.exe
+NEMO_EXE=/fs2/n02/n02/chbull/nemo/models/MergedCode_9321_flx9855_remap9853_divgcorr9845_shlat9864/NEMOGCM/CONFIG/ISOMIP_2/BLD/bin/nemo.exe
+#NEMO_EXE=/fs2/n02/n02/chbull/nemo/models/MergedCode_9321_flx9855_remap9853_divgcorr9845_shlat9864/NEMOGCM/CONFIG/ISOMIP_3/BLD/bin/nemo.exe
 
 DATE=`date '+%Y-%m-%d %H:%M:%S'`
+
+#coupled with bisicles? (nb: pythonic True / False)
+#BISICLES_CPL=False
+BISICLES_CPL=True
 
 ##-- User's choices END
 
@@ -151,17 +155,20 @@ EOF
 
 
     # testing the dz method for the losh boundary layer, see: /fs2/n02/n02/chbull/nemo/models/MergedCode_9321_flx9855_remap9853_divgcorr9845_shlat9864/NEMOGCM/CONFIG/ISOMIP_3/MY_SRC/sbcisf.F90
-    echo "W A R N I N G: We are using new version of NEMO (ISOMIP_3) ^^ "
-    ln -s ${NEMO_EXE} nemo.exe
+    #echo "W A R N I N G: We are using new version of NEMO (ISOMIP_3) ^^ "
+    #ln -s ${NEMO_EXE} nemo.exe
 
     #ln -s /fs2/n02/n02/chbull/nemo/models/XIOS/bin/xios_server.exe xios_server.exe
     ln -s /fs2/n02/n02/chbull/nemo/models/XIOSv1/bin/xios_server.exe xios_server.exe
     
     ##cp template: namelists, *.xml etc
-    cp --preserve=links /nerc/n02/n02/chbull/repos/misomip_bas/configs/rnemo_ARCHER/* ${WORKDIR}
+    cp -r --preserve=links /nerc/n02/n02/chbull/repos/misomip_bas/configs/rnemo_ARCHER/* ${WORKDIR}
 
+    echo "BTW.."
     echo "We are using config type: ${FORCING_TYPE}"
     echo "We are doing ocean number: ${FORCING_NUM}"
+    echo "We are coupling with bisicles: ${BISICLES_CPL}"
+    echo ""
     if [ ${FORCING_TYPE} = "COM" ]; then
         OCEANCORES=24
         NODES=1
@@ -272,9 +279,25 @@ EOF
         exit
     fi 
 
+    if [ $BISICLES_CPL = True ]; then
+        #echo "We are coupling with BISICLES!"
+        #ln -s /fs2/n02/n02/chbull/nemo/bld_configs/input_MISOMIP/BISICLES/chk.isomip24.spin.ssa.l3.Chombo.A2e-17.constfriction.a0.3.098006.2d.hdf5 ${WORKDIR}/bisicles/chk.init
+        ln -s ${WCONFIG}/BISICLES/chk.isomip24.spin.ssa.l3.Chombo.A2e-17.constfriction.a0.3.098006.2d.hdf5 ${WORKDIR}/bisicles/chk.init
+
+        #link to bisicles
+        #ln -s /work/n02/shared/cornford/UniCiCles_rss_ukesm/BISICLES/code/exec2D/driver2d.Linux.64.CC.ftn.OPT.MPI.GNU.DY.ex ${WORKDIR}/bisicles/bisicles.exe
+        ln -s ${WCONFIG}/BISICLES/driver2d.Linux.64.CC.ftn.OPT.MPI.GNU.DY.ex ${WORKDIR}/bisicles/bisicles.exe
+
+        #taken from:
+        # /fs2/n02/shared/robin/unicicles_rss_ukesm/BISICLES/code/filetools
+        ln -s ${WCONFIG}/BISICLES/nctoamr2d.Linux.64.CC.ftn.OPT.INTEL.ex ${WORKDIR}/bisicles/nctoamr2d.Linux.64.CC.ftn.OPT.INTEL.ex
+        ln -s ${WCONFIG}/BISICLES/flatten2d.Linux.64.CC.ftn.OPT.INTEL.ex ${WORKDIR}/bisicles/flatten2d.Linux.64.CC.ftn.OPT.INTEL.ex
+
+    fi
+
 fi
 
-sed -e "s/pppp/${PROJ}/g ; s/ssss/${STOCKDIR2}/g ; s/wwww/${WORKDIR2}/g ; s/cccc/${CONFIG}/g ; s/oooo/${CASE}/g ; s/zzzz/${DESC}/g ; s/Y0Y0/${YEAR0}/g ; s/YMYM/${YEAR_MAX}/g ; s/eeee/${OCEANCORES}/g ; s/ffff/${XIOCORES}/g ; s/gggg/${NODES}/g ; s/hhhh/${RHOURS}/g; s/jjjj/${RBUILD_NEMO2}/g ; s/yyyy/${FORCING_TYPE}/g ; s/kkkk/${FORCING_NUM}/g " ${WORKDIR}/run_nemo_GENERIC.py > ${WORKDIR}/GoGoNEMO.py
+sed -e "s/pppp/${PROJ}/g ; s/ssss/${STOCKDIR2}/g ; s/wwww/${WORKDIR2}/g ; s/cccc/${CONFIG}/g ; s/oooo/${CASE}/g ; s/zzzz/${DESC}/g ; s/Y0Y0/${YEAR0}/g ; s/YMYM/${YEAR_MAX}/g ; s/eeee/${OCEANCORES}/g ; s/ffff/${XIOCORES}/g ; s/gggg/${NODES}/g ; s/hhhh/${RHOURS}/g; s/jjjj/${RBUILD_NEMO2}/g ; s/yyyy/${FORCING_TYPE}/g ; s/kkkk/${FORCING_NUM}/g ; s/xxxx/${BISICLES_CPL}/g " ${WORKDIR}/run_nemo_GENERIC.py > ${WORKDIR}/GoGoNEMO.py
 
 chmod +x ${WORKDIR}/GoGoNEMO.py 
 #export PYTHONPATH=/work/n02/n02/chbull/anaconda2/pkgs;export PATH=/work/n02/n02/chbull/anaconda2/bin:$PATH;source activate root

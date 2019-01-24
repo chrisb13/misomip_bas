@@ -33,6 +33,7 @@ DESC='zzzz'
 RBUILD_NEMO='jjjj'
 YEAR0=Y0Y0
 YEAR_MAX=YMYM
+BISICLES_CPL=xxxx
 
 def mkdir(p):
     """make directory of path that is passed"""
@@ -335,15 +336,79 @@ if __name__ == "__main__":
                 handle.write('cd ..'+'\n')
                 handle.write('rm -r tempo/'+'\n')
 
-            handle.write(''+'\n')
-            handle.write('echo "NEMO stuff finished, will now try and do the BISICLES stuff"'+'\n')
-            handle.write('#this was the only way robin and I found to kill my anaconda environment.'+'\n')
-            handle.write('#cd is important otherwise wont find inputs file or python path change'+'\n')
-            handle.write('cd /fs2/n02/n02/chbull/nemo/sandbox_robin/MISOMIP_COM_fake'+'\n')
-            handle.write('module load python-compute'+'\n')
-            handle.write('export PYTHONPATH=.:$PYTHONPATH'+'\n')
-            handle.write('aprun -n 1 /work/n02/shared/cornford/UniCiCles_rss_ukesm/BISICLES/code/exec2D/driver2d.Linux.64.CC.ftn.OPT.MPI.GNU.DY.ex inputs.MMP.69'+'\n')
-            handle.write(''+'\n')
+            if BISICLES_CPL:
+                handle.write(''+'\n')
+                handle.write('echo "NEMO stuff finished, will now try and do the BISICLES stuff"'+'\n')
+
+                handle.write(''+'\n')
+                handle.write('# make a netcdf file containing the annual average NEMO shelf melt variables in the units BISICLES wants'+'\n')
+                handle.write('module load cdo'+'\n')
+                handle.write('module load python-compute'+'\n')
+                handle.write('export PYTHONPATH=.:$PYTHONPATH'+'\n')
+                handle.write('module unload cray-netcdf-hdf5parallel/4.4.1.1;module unload cray-hdf5-parallel/1.10.0.1;module load nco'+'\n')
+                handle.write('module load pc-netcdf4-python'+'\n')
+                handle.write('module load pc-scipy'+'\n')
+                handle.write('cd bisicles'+'\n')
+                handle.write('######################################################'+'\n')
+                handle.write('#  convert NEMO output into BISICLES readable input  #'+'\n')
+                handle.write('######################################################'+'\n')
+                handle.write('#namely: nemoout4bisicles.hdf5'+'\n')
+                handle.write('echo "Looking for last grid_T NEMO output file"'+'\n')
+                handle.write('LAST_GRID_T_FILE=`ls '+WORKDIR+CONFIG+'_'+CASE+'_1m'+'*_grid_T.nc| tail -1`'+'\n')
+                handle.write('echo "Found: ${LAST_GRID_T_FILE}"'+'\n')
+                handle.write(''+'\n')
+
+                if int(YEAR)==1:
+                    handle.write('LAST_BISICLES_RESTART='+WORKDIR+'bisicles/chk.init'+'\n')
+                else:
+                    # TODO
+                    # handle.write('LAST_BISICLES_RESTART='+WORKDIR+'/chk.init'+'\n')
+                    #LAST_BISICLES_RESTART=<wherever it is. Possibly it's `ls -rt $LAST_YEARS_RUNDIR/chk* | tail -1`>
+                    pass
+
+                handle.write('#get melt rate/sub-shelf latent heating'+'\n')
+                handle.write('ncks -Ov meltRate,sohflisf $LAST_GRID_T_FILE tmp2.nc'+'\n')
+                handle.write("#average all the time-entries to get 'annual' (we hope!) average"+'\n')
+                handle.write('ncra -O tmp2.nc tmp.nc'+'\n')
+                handle.write('#change variable names/units into what bisicles wants'+'\n')
+                handle.write('NDAYS='+str(NDAYS)+'\n')
+                handle.write('YEAR='+str(YEAR)+'\n')
+                handle.write('ncap2 -Os "sowflisf=double(meltRate)*60*60*24*${NDAYS}/1e3" tmp.nc tmp2.nc'+'\n')
+                handle.write('ncap2 -Os "sohflisf=double(sohflisf)*60*60*24*${NDAYS}" tmp2.nc nple3.nc'+'\n')
+                handle.write('##chop off the border and change the axes to BISICLES cartesian'+'\n')
+                handle.write('python goxy_toBIKE-COM.py'+'\n')
+                handle.write('##convert it to BISICLES hdf5 format'+'\n')
+                handle.write('nctoamr2d.Linux.64.CC.ftn.OPT.INTEL.ex nemoout4bisicles.nc nemoout4bisicles.hdf5 MELT_REGRID HEAT_REGRID'+'\n')
+                handle.write('##clean up'+'\n')
+                handle.write('rm nple3.nc tmp2.nc tmp.nc'+'\n')
+                handle.write('#find last BISICLES restart'+'\n')
+                handle.write('#inputs.MMP needs to have the correct path to the restart file and the main.maxTime where main.maxTime is the number of years'+'\n')
+                handle.write('sed -e "s/EENNDDDDAATTEE/${YEAR}/g ; s/RREESSTTAARRTTFFIILLEE/${LAST_BISICLES_RESTART}/g" bisicles/inputs.MMP_template > inputs.MMP'+'\n')
+                handle.write('#bisicles outputs, .X is the proc number'+'\n')
+                handle.write('rm pout.MPP.*'+'\n')
+                handle.write('aprun -n 1 bisicles.exe inputs.MMP'+'\n')
+                handle.write('##find last BISICLES plot file'+'\n')
+                handle.write('LAST_BISICLES_PLOT=`ls -rt plot* | tail -1`'+'\n')
+                handle.write("BISI_SUCESS=`grep 'AmrIce::run finished' pout.MMP.0`"+'\n')
+                handle.write('if [ -z "$BISI_SUCESS" ]'+'\n')
+                handle.write('then'+'\n')
+                handle.write('    echo "E R R O R"'+'\n')
+                handle.write('    echo "\$BISI_SUCESS is empty"'+'\n')
+                handle.write('    touch killnemo'+'\n')
+                handle.write('    exit 1'+'\n')
+                handle.write('else'+'\n')
+                handle.write('    echo "\$BISI_SUCESS is NOT empty, BISICLES run finished successfully"'+'\n')
+                handle.write('    #echo ${BISI_SUCESS}'+'\n')
+                handle.write('fi'+'\n')
+                handle.write('echo "running flatten2d thing"'+'\n')
+                handle.write('#makes blex'+'\n')
+                handle.write('flatten2d.Linux.64.CC.ftn.OPT.INTEL.ex $LAST_BISICLES_PLOT bplex.nc 2'+'\n')
+                handle.write('echo "bisiclesToSTDGeom.py"'+'\n')
+                handle.write('#Xylars BISICLES output --> isf_draft'+'\n')
+                handle.write('python bisiclesToSTDGeom.py'+'\n')
+                handle.write('echo "expand_geom_2d.py"'+'\n')
+                handle.write('#pads around the outside back into NEMO'+'\n')
+                handle.write('python expand_geom_2d.py'+'\n')
 
 
         subprocess.call('chmod u+x '+rnemo,shell=True)
