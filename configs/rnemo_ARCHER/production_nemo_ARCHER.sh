@@ -13,8 +13,8 @@
 
 ##-- User's choices START
 
-CONFIG='ISOMIP_COM'
-CASE='bisicles04'
+CONFIG='MISOMIP_COM'
+CASE='03a'
 RDIR="/fs2/n02/n02/chbull/nemo/run"
 WORKDIR=${RDIR}/${CONFIG}_${CASE}
 
@@ -35,16 +35,16 @@ if [ $DEBUGJOB = TRUE ]
     NODES=1            #this is hard-coded because of the namelists
     #OCEANCORES=10     #this is hard-coded because of the namelists
     XIOCORES=5
-    RHOURS=5
+    RHOURS=24
 fi
 
 PROJ='n02-FISSA'  
 PROJ='n02-bas'   #So use "n02-bas as you're already in that group" - email: Jul 16, 2018, 12:11 PM
 
 #avoid weird char'
-DESC='Ocean0 COM BISICLES_CPL test case'
+DESC='MISOMIP Ocean3 COM production test'
 YEAR0=1
-YEAR_MAX=2
+YEAR_MAX=100
 #DDMM
 
 STOCKDIR="/nerc/n02/n02/chbull/RawData/NEMO"  #- restart and output directory on rdf
@@ -55,7 +55,7 @@ WCONFIG=/fs2/n02/n02/chbull/nemo/bld_configs/input_MISOMIP
 FORCING_TYPE=COM
 #FORCING_TYPE=TYP
 
-FORCING_NUM=0
+FORCING_NUM=3
 
 FORCING=/work/n01/shared/core2
 
@@ -71,6 +71,13 @@ DATE=`date '+%Y-%m-%d %H:%M:%S'`
 #coupled with bisicles? (nb: pythonic True / False)
 #BISICLES_CPL=False
 BISICLES_CPL=True
+if [ $BISICLES_CPL = True ]; then
+    if [ ${FORCING_NUM} -lt 3 ]; then
+        echo "E R R O R"
+        echo "BISICLES_CPL only supported for FORCING_NUM 3 or 4 (see run_nemo_GENERIC.py)."
+        exit 
+fi
+fi
 
 ##-- User's choices END
 

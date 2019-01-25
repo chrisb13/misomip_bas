@@ -210,7 +210,30 @@ if __name__ == "__main__":
         # print NIT000,NITEND 
 
         if FORCING_NUM==3 or FORCING_NUM==4:
-            get_ISOMIP_timeslice(int(NRUN),WORKDIR)
+            if not BISICLES_CPL:
+                get_ISOMIP_timeslice(int(NRUN),WORKDIR)
+            else:
+                biscdir=WORKDIR+'OUTNEMO_'+str(NRUN).zfill(4)+'/'+'bisc/'
+                mkdir(biscdir)
+                if int(YEAR)==1:
+                    get_ISOMIP_timeslice(int(NRUN),WORKDIR)
+                else:
+                    if os.path.exists(WORKDIR+'bathy_meter.nc'):
+                        os.remove(WORKDIR+'bathy_meter.nc')
+                        lg.warning("File: "+WORKDIR+'bathy_meter.nc' + ' removed.')
+
+                    if os.path.exists(WORKDIR+'isf_draft_meter.nc'):
+                        os.remove(WORKDIR+'isf_draft_meter.nc')
+                        lg.warning("File: "+WORKDIR+'isf_draft_meter.nc' + ' removed.')
+
+                    biscdir_prev=WORKDIR+'OUTNEMO_'+str(int(NRUN)-1).zfill(4)+'/'+'bisc/'
+                    shutil.copyfile(biscdir_prev+'bathy_isfdraft_242.nc',WORKDIR+'bathy_meter.nc')
+                    shutil.copyfile(biscdir_prev+'bathy_isfdraft_242.nc',WORKDIR+'isf_draft_meter.nc')
+                    bisicles_restart=sorted(glob.glob(biscdir_prev+'chk.MMP.*.2d.hdf5'  ))
+                    assert(bisicles_restart!=[]),"glob didn't find a bisicles_restart file!"
+                    os.symlink(bisicles_restart[0], WORKDIR+'bisicles/chk.last')
+                    lg.info("Using bisicles restart file: "+bisicles_restart[0])
+
             #always want a mesh_mask with the moving geometry experiments..
             nml_patch['namdom']={'nn_msh':1}
 
@@ -233,7 +256,7 @@ if __name__ == "__main__":
                 nml_patch['nammpp']['jpnij']=0
 
             elif OCEANCORES==24:
-                lg.info("Hard-wiring the proc-decomp for square workloads on 48 procs (normally used for COM)") 
+                lg.info("Hard-wiring the proc-decomp for square workloads on 24 procs (normally used for COM)") 
                 nml_patch['nammpp']={}
                 nml_patch['nammpp']['jpni']=12
                 nml_patch['nammpp']['jpnj']=2
@@ -264,7 +287,6 @@ if __name__ == "__main__":
         f90nml.patch(nmlpath, nml_patch, out_path=nmlpath+'_new')
         shutil.move(nmlpath+'_new', nmlpath)
 
-
         ###########################################################
         ###-- run
         
@@ -274,7 +296,7 @@ if __name__ == "__main__":
         # ln -s namelist namelist_ref
 
         subprocess.call('echo "-np '+str(OCEANCORES)+' ./nemo.exe" > app.conf',shell=True)
-        subprocess.call('echo "-np '+str(XIOCORES) +' ./xios_server.exe" >> app.conf',shell=True)
+        subprocess.call('echo "-np '+str(XIOCORES) + ' ./xios_server.exe" >> app.conf',shell=True)
 
         #think Goggomobil!
         rnemo=WORKDIR+'GoGGoNEMO_'+str(NRUN).zfill(4)+'.sh'
@@ -356,14 +378,17 @@ if __name__ == "__main__":
                 handle.write('echo "Looking for last grid_T NEMO output file"'+'\n')
                 handle.write('LAST_GRID_T_FILE=`ls '+WORKDIR+CONFIG+'_'+CASE+'_1m'+'*_grid_T.nc| tail -1`'+'\n')
                 handle.write('echo "Found: ${LAST_GRID_T_FILE}"'+'\n')
+                handle.write('chmod u+rwx ${LAST_GRID_T_FILE}'  +'\n')
                 handle.write(''+'\n')
 
                 if int(YEAR)==1:
-                    handle.write('LAST_BISICLES_RESTART='+WORKDIR+'bisicles/chk.init'+'\n')
+                    # handle.write('LAST_BISICLES_RESTART='+WORKDIR+'bisicles/chk.init'+'\n')
+                    handle.write('LAST_BISICLES_RESTART='+'chk.init'+'\n')
                 else:
                     # TODO
                     # handle.write('LAST_BISICLES_RESTART='+WORKDIR+'/chk.init'+'\n')
                     #LAST_BISICLES_RESTART=<wherever it is. Possibly it's `ls -rt $LAST_YEARS_RUNDIR/chk* | tail -1`>
+                    handle.write('LAST_BISICLES_RESTART='+'chk.last'+'\n')
                     pass
 
                 handle.write('#get melt rate/sub-shelf latent heating'+'\n')
@@ -383,7 +408,7 @@ if __name__ == "__main__":
                 handle.write('rm nple3.nc tmp2.nc tmp.nc'+'\n')
                 handle.write('#find last BISICLES restart'+'\n')
                 handle.write('#inputs.MMP needs to have the correct path to the restart file and the main.maxTime where main.maxTime is the number of years'+'\n')
-                handle.write('sed -e "s/EENNDDDDAATTEE/${YEAR}/g ; s/RREESSTTAARRTTFFIILLEE/${LAST_BISICLES_RESTART}/g" bisicles/inputs.MMP_template > inputs.MMP'+'\n')
+                handle.write('sed -e "s/EENNDDDDAATTEE/${YEAR}/g ; s/RREESSTTAARRTTFFIILLEE/${LAST_BISICLES_RESTART}/g" inputs.MMP_template > inputs.MMP'+'\n')
                 handle.write('#bisicles outputs, .X is the proc number'+'\n')
                 handle.write('rm pout.MPP.*'+'\n')
                 handle.write('aprun -n 1 bisicles.exe inputs.MMP'+'\n')
@@ -409,6 +434,14 @@ if __name__ == "__main__":
                 handle.write('echo "expand_geom_2d.py"'+'\n')
                 handle.write('#pads around the outside back into NEMO'+'\n')
                 handle.write('python expand_geom_2d.py'+'\n')
+                handle.write('#should have created bathy_isfdraft_242.nc and bathy_isfdraft.nc'+'\n')
+                handle.write('#rm intermediate files'+'\n')
+                handle.write('rm nemoout4bisicles.nc chk.init bplex.nc inputs.MMP nemoout4bisicles.hdf5 chk.last'+'\n')
+
+                # handle.write('#create restart link for next bisicles run'+'\n')
+                # handle.write('ln -s chk.MMP.* chk.last'+'\n')
+                
+
 
 
         subprocess.call('chmod u+x '+rnemo,shell=True)
@@ -436,6 +469,22 @@ if __name__ == "__main__":
             mkdir(odir)
         if not os.path.exists(rdir):
             mkdir(rdir)
+
+        #bisicles error trap / move bisicles output files
+        if BISICLES_CPL:
+            if os.path.exists(WORKDIR+'bisicles/killnemo'):
+                lg.warning("We are stopping (as we think something went wrong with bisicles...")
+                sys.exit()
+
+            #move everything important to OUTNEMO
+            shutil.move(WORKDIR+'bisicles/bathy_isfdraft_242.nc', biscdir)
+            shutil.move(WORKDIR+'bisicles/bathy_isfdraft.nc', biscdir)
+            shutil.move(WORKDIR+'bisicles/pout.MMP.0', biscdir)
+
+            bisicles_restart=sorted(glob.glob(WORKDIR+'bisicles/chk.MMP.*.2d.hdf5'  ))
+            shutil.move(bisicles_restart[0], biscdir)
+            bisicles_output=sorted(glob.glob(WORKDIR+'bisicles/plot.MMP.*.2d.hdf5'  ))
+            shutil.move(bisicles_output[0], biscdir)
 
         ofiles=sorted(glob.glob(WORKDIR+CONFIG+'_'+CASE+'_[1-5][dhm]_*nc'))
         rfiles=sorted(glob.glob(WORKDIR+CONFIG+'_'+CASE+'_*_restart*.nc'))
@@ -593,6 +642,15 @@ if __name__ == "__main__":
 
             if str(NRUN)=='1':
                 handle.write('mv -v '+ WORKDIR + 'mesh_mask.nc '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+'\n')
+
+            #bisicles copy/move outputs
+            if BISICLES_CPL:
+                handle.write('mv -v '+ biscdir + 'plot.MMP* '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/'+'\n')
+                handle.write('cp -v '+ biscdir + 'chk.MMP* '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/'+'\n')
+                handle.write('mv -v '+ biscdir + 'pout.MMP.0 '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/'+'\n')
+                handle.write('cp -v '+ biscdir + 'bathy_isfdraft_242.nc '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/bathy_isfdraft_242_bisicles.nc'+'\n')
+                handle.write('mv -v '+ biscdir + 'bathy_isfdraft.nc '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/bathy_isfdraft_bisicles.nc'+'\n')
+
 
             #r'sync the run to the shared folder after every year it goes... (so Antony/Robin can see it..)
             handle.write('rsync -avz --progress /nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+' ' + '/nerc/n02/shared/chbull/MISOMIP'+'\n')
