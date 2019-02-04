@@ -434,13 +434,10 @@ if __name__ == "__main__":
                     handle.write('module load pc-matplotlib '+'\n')
                     handle.write('python zero_thin_melt.py'+'\n')
                     handle.write('#remap onto the BISICLES grid'+'\n')
-                    handle.write('ln -s $input_MISOMIP/gridfile_NEMO_MISOMIP_TYP.txt .'+'\n')
-                    handle.write('ln -s $input_MISOMIP/gridfile_BISICLES_MISOMIP1km.txt .'+'\n')
+                    # handle.write('ln -s $input_MISOMIP/gridfile_NEMO_MISOMIP_TYP.txt .'+'\n')
+                    # handle.write('ln -s $input_MISOMIP/gridfile_BISICLES_MISOMIP1km.txt .'+'\n')
                     handle.write('cdo remapcon,gridfile_BISICLES_MISOMIP1km.txt -setgrid,gridfile_NEMO_MISOMIP_TYP.txt nple3.nc nemo_melt_1km.nc'+'\n')
 
-
-                    # TODO
-                    # ?_bike*dump files
                     handle.write('python goxy_toBIKE-TYP.py'+'\n')
                 elif FORCING_TYPE=='COM':
 
@@ -478,7 +475,7 @@ if __name__ == "__main__":
                 if FORCING_TYPE=='TYP':
 
                     handle.write('cdo remapcon,gridfile_NEMO_MISOMIP_TYP.txt -setgrid,gridfile_BISICLES_MISOMIP1km.txt bplex.nc bike_geom_TYP.nc'+'\n')
-                    handle.write('python $input_MISOMIP/process_mismipgeom.py'+'\n')
+                    handle.write('python process_mismipgeom.py'+'\n')
                     # handle.write('cp bathy_isf_meter_TYP.nc <wherever the next nemo will need it>'+'\n')
                     handle.write('#should have created bathy_isf_meter_TYP.nc'+'\n')
                     handle.write('#rm intermediate files'+'\n')
@@ -703,7 +700,7 @@ if __name__ == "__main__":
                 handle.write('cp -v '+ biscdir + 'chk.MMP* '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/'+'\n')
                 handle.write('mv -v '+ biscdir + 'pout.MMP.0 '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/'+'\n')
                 if FORCING_TYPE=='TYP':
-                    handle.write('cp -v '+ biscdir + 'bathy_isf_meter_TYP.nc '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/bathy_isfdraft_242_bisicles.nc'+'\n')
+                    handle.write('cp -v '+ biscdir + 'bathy_isf_meter_TYP.nc '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/bathy_isf_meter_bisicles.nc'+'\n')
                 elif FORCING_TYPE=='COM':
                     handle.write('cp -v '+ biscdir + 'bathy_isfdraft_242.nc '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/bathy_isfdraft_242_bisicles.nc'+'\n')
                     handle.write('mv -v '+ biscdir + 'bathy_isfdraft.nc '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/bathy_isfdraft_bisicles.nc'+'\n')

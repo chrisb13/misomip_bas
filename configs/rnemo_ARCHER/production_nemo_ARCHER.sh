@@ -13,7 +13,7 @@
 
 ##-- User's choices START
 
-CONFIG='MISOMIP_COM'
+CONFIG='MISOMIP_TYP'
 CASE='03a'
 RDIR="/fs2/n02/n02/chbull/nemo/run"
 WORKDIR=${RDIR}/${CONFIG}_${CASE}
@@ -42,7 +42,7 @@ PROJ='n02-FISSA'
 PROJ='n02-bas'   #So use "n02-bas as you're already in that group" - email: Jul 16, 2018, 12:11 PM
 
 #avoid weird char'
-DESC='MISOMIP Ocean3 COM production test'
+DESC='MISOMIP Ocean3 TYP production run'
 YEAR0=1
 YEAR_MAX=100
 #DDMM
@@ -53,7 +53,7 @@ WCONFIG=/fs2/n02/n02/chbull/nemo/bld_configs/input_MISOMIP
 
 #change the case name too!
 FORCING_TYPE=COM
-#FORCING_TYPE=TYP
+FORCING_TYPE=TYP
 
 FORCING_NUM=3
 
