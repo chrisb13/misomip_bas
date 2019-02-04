@@ -76,7 +76,7 @@ if [ $BISICLES_CPL = True ]; then
         echo "E R R O R"
         echo "BISICLES_CPL only supported for FORCING_NUM 3 or 4 (see run_nemo_GENERIC.py)."
         exit 
-fi
+    fi
 fi
 
 ##-- User's choices END
@@ -286,8 +286,16 @@ EOF
         exit
     fi 
 
+    #echo "We are coupling with BISICLES!"
     if [ $BISICLES_CPL = True ]; then
-        #echo "We are coupling with BISICLES!"
+        # concept: a bisicles_COM and bisicles_TYP that get renamed to bisicles in production_nemo.sh
+        # this is just so the input files are seperated in the github repo'
+        if [ ${FORCING_TYPE} = "COM" ]; then
+            mv ${WORKDIR}/bisicles_COM/ ${WORKDIR}/bisicles/
+        elif [ ${FORCING_TYPE} = "TYP" ]; then
+            mv ${WORKDIR}/bisicles_TYP/ ${WORKDIR}/bisicles/
+        fi 
+
         #ln -s /fs2/n02/n02/chbull/nemo/bld_configs/input_MISOMIP/BISICLES/chk.isomip24.spin.ssa.l3.Chombo.A2e-17.constfriction.a0.3.098006.2d.hdf5 ${WORKDIR}/bisicles/chk.init
         ln -s ${WCONFIG}/BISICLES/chk.isomip24.spin.ssa.l3.Chombo.A2e-17.constfriction.a0.3.098006.2d.hdf5 ${WORKDIR}/bisicles/chk.init
 
@@ -304,7 +312,7 @@ EOF
 
 fi
 
-sed -e "s/pppp/${PROJ}/g ; s/ssss/${STOCKDIR2}/g ; s/wwww/${WORKDIR2}/g ; s/cccc/${CONFIG}/g ; s/oooo/${CASE}/g ; s/zzzz/${DESC}/g ; s/Y0Y0/${YEAR0}/g ; s/YMYM/${YEAR_MAX}/g ; s/eeee/${OCEANCORES}/g ; s/ffff/${XIOCORES}/g ; s/gggg/${NODES}/g ; s/hhhh/${RHOURS}/g; s/jjjj/${RBUILD_NEMO2}/g ; s/yyyy/${FORCING_TYPE}/g ; s/kkkk/${FORCING_NUM}/g ; s/xxxx/${BISICLES_CPL}/g " ${WORKDIR}/run_nemo_GENERIC.py > ${WORKDIR}/GoGoNEMO.py
+sed -e "s/pppp/${PROJ}/g ; s/ssss/${STOCKDIR2}/g ; s/wwww/${WORKDIR2}/g ; s/cccc/${CONFIG}/g ; s/oooo/${CASE}/g ; s/zzzz/${DESC}/g ; s/Y0Y0/${YEAR0}/g ; s/YMYM/${YEAR_MAX}/g ; s/eeee/${OCEANCORES}/g ; s/ffff/${XIOCORES}/g ; s/gggg/${NODES}/g ; s/hhhh/${RHOURS}/g; s/jjjj/${RBUILD_NEMO2}/g ; s/kkkk/${FORCING_NUM}/g ; s/xxxx/${BISICLES_CPL}/g ; s/uuuu/${FORCING_TYPE}/g " ${WORKDIR}/run_nemo_GENERIC.py > ${WORKDIR}/GoGoNEMO.py
 
 chmod +x ${WORKDIR}/GoGoNEMO.py 
 #export PYTHONPATH=/work/n02/n02/chbull/anaconda2/pkgs;export PATH=/work/n02/n02/chbull/anaconda2/bin:$PATH;source activate root

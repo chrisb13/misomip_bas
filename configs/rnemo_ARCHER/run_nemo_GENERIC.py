@@ -22,8 +22,8 @@ XIOCORES=ffff
 NODES=gggg
 RHOURS=hhhh
 
-FORCING_NAME='yyyy'
 FORCING_NUM=kkkk
+FORCING_TYPE='uuuu'
 PROJ='pppp'
 WORKDIR='wwww'+'/'
 STOCKDIR='ssss'
@@ -227,8 +227,13 @@ if __name__ == "__main__":
                         lg.warning("File: "+WORKDIR+'isf_draft_meter.nc' + ' removed.')
 
                     biscdir_prev=WORKDIR+'OUTNEMO_'+str(int(NRUN)-1).zfill(4)+'/'+'bisc/'
-                    shutil.copyfile(biscdir_prev+'bathy_isfdraft_242.nc',WORKDIR+'bathy_meter.nc')
-                    shutil.copyfile(biscdir_prev+'bathy_isfdraft_242.nc',WORKDIR+'isf_draft_meter.nc')
+
+                    if FORCING_TYPE=='TYP':
+                        shutil.copyfile(biscdir_prev+'bathy_isf_meter_TYP.nc',WORKDIR+'bathy_meter.nc')
+                        shutil.copyfile(biscdir_prev+'bathy_isf_meter_TYP.nc',WORKDIR+'isf_draft_meter.nc')
+                    elif FORCING_TYPE=='COM':
+                        shutil.copyfile(biscdir_prev+'bathy_isfdraft_242.nc',WORKDIR+'bathy_meter.nc')
+                        shutil.copyfile(biscdir_prev+'bathy_isfdraft_242.nc',WORKDIR+'isf_draft_meter.nc')
                     bisicles_restart=sorted(glob.glob(biscdir_prev+'chk.MMP.*.2d.hdf5'  ))
                     assert(bisicles_restart!=[]),"glob didn't find a bisicles_restart file!"
                     os.symlink(bisicles_restart[0], WORKDIR+'bisicles/chk.last')
@@ -385,11 +390,7 @@ if __name__ == "__main__":
                     # handle.write('LAST_BISICLES_RESTART='+WORKDIR+'bisicles/chk.init'+'\n')
                     handle.write('LAST_BISICLES_RESTART='+'chk.init'+'\n')
                 else:
-                    # TODO
-                    # handle.write('LAST_BISICLES_RESTART='+WORKDIR+'/chk.init'+'\n')
-                    #LAST_BISICLES_RESTART=<wherever it is. Possibly it's `ls -rt $LAST_YEARS_RUNDIR/chk* | tail -1`>
                     handle.write('LAST_BISICLES_RESTART='+'chk.last'+'\n')
-                    pass
 
                 handle.write('#get melt rate/sub-shelf latent heating'+'\n')
                 handle.write('ncks -Ov meltRate,sohflisf $LAST_GRID_T_FILE tmp2.nc'+'\n')
@@ -400,13 +401,58 @@ if __name__ == "__main__":
                 handle.write('YEAR='+str(YEAR)+'\n')
                 handle.write('ncap2 -Os "sowflisf=double(meltRate)*60*60*24*${NDAYS}/1e3" tmp.nc tmp2.nc'+'\n')
                 handle.write('ncap2 -Os "sohflisf=double(sohflisf)*60*60*24*${NDAYS}" tmp2.nc nple3.nc'+'\n')
-                handle.write('##chop off the border and change the axes to BISICLES cartesian'+'\n')
-                handle.write('python goxy_toBIKE-COM.py'+'\n')
+
+                if FORCING_TYPE=='TYP':
+                    # robin email (Fri, Jan 25, 2:49 PM)
+                    # after NEMO runs:
+                    # a) nco: add some netCDF masking to nple3.nc so the regridding only
+                    # touches the active NEMO domain
+
+                    # b) python: zero out melt fluxes where the ice is very thin (prevents
+                    # burning holes through the ice. This wasn't a problem in COM, it seems)
+
+                    # c) cdo: remap NEMO melt onto the BISICLES grid
+
+                    # after BISICLES runs, there was also
+
+                    # d) cdo: remap BISICLES geometry onto NEMO grid
+
+                    # e) python: rather than use (Xylar's) bisiclesToSTDGeom.py and (my)
+                    # expand_geom_2d.py, for TYP I had a different script to change the
+                    # variable names and things so NEMO could read it.
+
+                    handle.write('ncap2 -Os "sohflisf=double(sohflisf)*60*60*24*${NDAYS}" tmp2.nc nple3.nc'+'\n')
+                    handle.write('#############COULD DO WITH FORMALLY MASKING nple3.nc TO AVOID BIASSING IN edge 0s######'+'\n')
+                    handle.write('ncatted -a _FillValue,sowflisf,m,f,0 nple3.nc'+'\n')
+                    handle.write('ncatted -a missing_value,sowflisf,m,f,0 nple3.nc'+'\n')
+                    handle.write('ncatted -a missing_value,sohflisf,m,f,0 nple3.nc'+'\n')
+                    handle.write('ncatted -a _FillValue,sohflisf,m,f,0 nple3.nc'+'\n')
+                    handle.write('########################################################################################'+'\n')
+                    handle.write('#tries to enforce 0 melt in places the BISICLES isf_draft (rather than'+'\n')
+                    handle.write('#the mesh_mask) says are verging on the too-thin'+'\n')
+                    handle.write('#NB zero_thin_melt assumes you have the isf_draft_meter.nc available in the current directory'+'\n')
+                    handle.write('module load pc-matplotlib '+'\n')
+                    handle.write('python zero_thin_melt.py'+'\n')
+                    handle.write('#remap onto the BISICLES grid'+'\n')
+                    handle.write('ln -s $input_MISOMIP/gridfile_NEMO_MISOMIP_TYP.txt .'+'\n')
+                    handle.write('ln -s $input_MISOMIP/gridfile_BISICLES_MISOMIP1km.txt .'+'\n')
+                    handle.write('cdo remapcon,gridfile_BISICLES_MISOMIP1km.txt -setgrid,gridfile_NEMO_MISOMIP_TYP.txt nple3.nc nemo_melt_1km.nc'+'\n')
+
+
+                    # TODO
+                    # ?_bike*dump files
+                    handle.write('python goxy_toBIKE-TYP.py'+'\n')
+                elif FORCING_TYPE=='COM':
+
+                    handle.write('##chop off the border and change the axes to BISICLES cartesian'+'\n')
+                    handle.write('python goxy_toBIKE-COM.py'+'\n')
+
+
+                # BISICLES runs the same regardless of COM/TYP
                 handle.write('##convert it to BISICLES hdf5 format'+'\n')
                 handle.write('nctoamr2d.Linux.64.CC.ftn.OPT.INTEL.ex nemoout4bisicles.nc nemoout4bisicles.hdf5 MELT_REGRID HEAT_REGRID'+'\n')
                 handle.write('##clean up'+'\n')
                 handle.write('rm nple3.nc tmp2.nc tmp.nc'+'\n')
-                handle.write('#find last BISICLES restart'+'\n')
                 handle.write('#inputs.MMP needs to have the correct path to the restart file and the main.maxTime where main.maxTime is the number of years'+'\n')
                 handle.write('sed -e "s/EENNDDDDAATTEE/${YEAR}/g ; s/RREESSTTAARRTTFFIILLEE/${LAST_BISICLES_RESTART}/g" inputs.MMP_template > inputs.MMP'+'\n')
                 handle.write('#bisicles outputs, .X is the proc number'+'\n')
@@ -428,21 +474,26 @@ if __name__ == "__main__":
                 handle.write('echo "running flatten2d thing"'+'\n')
                 handle.write('#makes blex'+'\n')
                 handle.write('flatten2d.Linux.64.CC.ftn.OPT.INTEL.ex $LAST_BISICLES_PLOT bplex.nc 2'+'\n')
-                handle.write('echo "bisiclesToSTDGeom.py"'+'\n')
-                handle.write('#Xylars BISICLES output --> isf_draft'+'\n')
-                handle.write('python bisiclesToSTDGeom.py'+'\n')
-                handle.write('echo "expand_geom_2d.py"'+'\n')
-                handle.write('#pads around the outside back into NEMO'+'\n')
-                handle.write('python expand_geom_2d.py'+'\n')
-                handle.write('#should have created bathy_isfdraft_242.nc and bathy_isfdraft.nc'+'\n')
-                handle.write('#rm intermediate files'+'\n')
-                handle.write('rm nemoout4bisicles.nc chk.init bplex.nc inputs.MMP nemoout4bisicles.hdf5 chk.last'+'\n')
 
-                # handle.write('#create restart link for next bisicles run'+'\n')
-                # handle.write('ln -s chk.MMP.* chk.last'+'\n')
-                
+                if FORCING_TYPE=='TYP':
 
-
+                    handle.write('cdo remapcon,gridfile_NEMO_MISOMIP_TYP.txt -setgrid,gridfile_BISICLES_MISOMIP1km.txt bplex.nc bike_geom_TYP.nc'+'\n')
+                    handle.write('python $input_MISOMIP/process_mismipgeom.py'+'\n')
+                    # handle.write('cp bathy_isf_meter_TYP.nc <wherever the next nemo will need it>'+'\n')
+                    handle.write('#should have created bathy_isf_meter_TYP.nc'+'\n')
+                    handle.write('#rm intermediate files'+'\n')
+                    handle.write('rm nemoout4bisicles.nc chk.init bplex.nc inputs.MMP nemoout4bisicles.hdf5 chk.last'+'\n')
+                    
+                elif FORCING_TYPE=='COM':
+                    handle.write('echo "bisiclesToSTDGeom.py"'+'\n')
+                    handle.write('#Xylars BISICLES output --> isf_draft'+'\n')
+                    handle.write('python bisiclesToSTDGeom.py'+'\n')
+                    handle.write('echo "expand_geom_2d.py"'+'\n')
+                    handle.write('#pads around the outside back into NEMO'+'\n')
+                    handle.write('python expand_geom_2d.py'+'\n')
+                    handle.write('#should have created bathy_isfdraft_242.nc and bathy_isfdraft.nc'+'\n')
+                    handle.write('#rm intermediate files'+'\n')
+                    handle.write('rm nemoout4bisicles.nc chk.init bplex.nc inputs.MMP nemoout4bisicles.hdf5 chk.last'+'\n')
 
         subprocess.call('chmod u+x '+rnemo,shell=True)
 
@@ -477,8 +528,11 @@ if __name__ == "__main__":
                 sys.exit()
 
             #move everything important to OUTNEMO
-            shutil.move(WORKDIR+'bisicles/bathy_isfdraft_242.nc', biscdir)
-            shutil.move(WORKDIR+'bisicles/bathy_isfdraft.nc', biscdir)
+            if FORCING_TYPE=='TYP':
+                shutil.move(WORKDIR+'bisicles/bathy_isf_meter_TYP.nc', biscdir)
+            elif FORCING_TYPE=='COM':
+                shutil.move(WORKDIR+'bisicles/bathy_isfdraft_242.nc', biscdir)
+                shutil.move(WORKDIR+'bisicles/bathy_isfdraft.nc', biscdir)
             shutil.move(WORKDIR+'bisicles/pout.MMP.0', biscdir)
 
             bisicles_restart=sorted(glob.glob(WORKDIR+'bisicles/chk.MMP.*.2d.hdf5'  ))
@@ -648,8 +702,11 @@ if __name__ == "__main__":
                 handle.write('mv -v '+ biscdir + 'plot.MMP* '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/'+'\n')
                 handle.write('cp -v '+ biscdir + 'chk.MMP* '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/'+'\n')
                 handle.write('mv -v '+ biscdir + 'pout.MMP.0 '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/'+'\n')
-                handle.write('cp -v '+ biscdir + 'bathy_isfdraft_242.nc '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/bathy_isfdraft_242_bisicles.nc'+'\n')
-                handle.write('mv -v '+ biscdir + 'bathy_isfdraft.nc '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/bathy_isfdraft_bisicles.nc'+'\n')
+                if FORCING_TYPE=='TYP':
+                    handle.write('cp -v '+ biscdir + 'bathy_isf_meter_TYP.nc '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/bathy_isfdraft_242_bisicles.nc'+'\n')
+                elif FORCING_TYPE=='COM':
+                    handle.write('cp -v '+ biscdir + 'bathy_isfdraft_242.nc '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/bathy_isfdraft_242_bisicles.nc'+'\n')
+                    handle.write('mv -v '+ biscdir + 'bathy_isfdraft.nc '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+str(YEAR).zfill(4)+'/bathy_isfdraft_bisicles.nc'+'\n')
 
 
             #r'sync the run to the shared folder after every year it goes... (so Antony/Robin can see it..)
