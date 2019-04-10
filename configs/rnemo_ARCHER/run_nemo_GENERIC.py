@@ -210,34 +210,7 @@ if __name__ == "__main__":
         # print NIT000,NITEND 
 
         if FORCING_NUM==3 or FORCING_NUM==4:
-            if not BISICLES_CPL:
-                get_ISOMIP_timeslice(int(NRUN),WORKDIR)
-            else:
-                biscdir=WORKDIR+'OUTNEMO_'+str(NRUN).zfill(4)+'/'+'bisc/'
-                mkdir(biscdir)
-                if int(YEAR)==1:
-                    get_ISOMIP_timeslice(int(NRUN),WORKDIR)
-                else:
-                    if os.path.exists(WORKDIR+'bathy_meter.nc'):
-                        os.remove(WORKDIR+'bathy_meter.nc')
-                        lg.warning("File: "+WORKDIR+'bathy_meter.nc' + ' removed.')
-
-                    if os.path.exists(WORKDIR+'isf_draft_meter.nc'):
-                        os.remove(WORKDIR+'isf_draft_meter.nc')
-                        lg.warning("File: "+WORKDIR+'isf_draft_meter.nc' + ' removed.')
-
-                    biscdir_prev=WORKDIR+'OUTNEMO_'+str(int(NRUN)-1).zfill(4)+'/'+'bisc/'
-
-                    if FORCING_TYPE=='TYP':
-                        shutil.copyfile(biscdir_prev+'bathy_isf_meter_TYP.nc',WORKDIR+'bathy_meter.nc')
-                        shutil.copyfile(biscdir_prev+'bathy_isf_meter_TYP.nc',WORKDIR+'isf_draft_meter.nc')
-                    elif FORCING_TYPE=='COM':
-                        shutil.copyfile(biscdir_prev+'bathy_isfdraft_242.nc',WORKDIR+'bathy_meter.nc')
-                        shutil.copyfile(biscdir_prev+'bathy_isfdraft_242.nc',WORKDIR+'isf_draft_meter.nc')
-                    bisicles_restart=sorted(glob.glob(biscdir_prev+'chk.MMP.*.2d.hdf5'  ))
-                    assert(bisicles_restart!=[]),"glob didn't find a bisicles_restart file!"
-                    os.symlink(bisicles_restart[0], WORKDIR+'bisicles/chk.last')
-                    lg.info("Using bisicles restart file: "+bisicles_restart[0])
+            get_ISOMIP_timeslice(int(NRUN),WORKDIR)
 
             #always want a mesh_mask with the moving geometry experiments..
             nml_patch['namdom']={'nn_msh':1}
@@ -246,46 +219,78 @@ if __name__ == "__main__":
                 nml_patch['namrun']['ln_iscpl']=True
                 nml_patch['namsbc_iscpl']={'nn_drown':50} # this wasn't in the cfg but it seems to patch ok!
 
-            if OCEANCORES==20:
-                lg.info("Hard-wiring the proc-decomp for square workloads on 20 procs (normally used for TYP)") 
-                nml_patch['nammpp']={}
-                nml_patch['nammpp']['jpni']=2
-                nml_patch['nammpp']['jpnj']=10
-                nml_patch['nammpp']['jpnij']=20
-            elif OCEANCORES==12:
-                lg.info("Hard-wiring the proc-decomp for Antony's test-case of 12 cores") 
-                #this ran on COM! But is slower than 24 cores on one node
-                nml_patch['nammpp']={}
-                nml_patch['nammpp']['jpni']=0
-                nml_patch['nammpp']['jpnj']=0
-                nml_patch['nammpp']['jpnij']=0
+        if FORCING_NUM==1 and BISICLES_CPL:
+            biscdir=WORKDIR+'OUTNEMO_'+str(NRUN).zfill(4)+'/'+'bisc/'
+            mkdir(biscdir)
+            if int(YEAR)>1:
+                if os.path.exists(WORKDIR+'bathy_meter.nc'):
+                    os.remove(WORKDIR+'bathy_meter.nc')
+                    lg.warning("File: "+WORKDIR+'bathy_meter.nc' + ' removed.')
 
-            elif OCEANCORES==24:
-                lg.info("Hard-wiring the proc-decomp for square workloads on 24 procs (normally used for COM)") 
-                nml_patch['nammpp']={}
-                nml_patch['nammpp']['jpni']=12
-                nml_patch['nammpp']['jpnj']=2
-                nml_patch['nammpp']['jpnij']=24
-            elif OCEANCORES==48:
-                lg.info("Hard-wiring the proc-decomp for square workloads on 48 procs (normally used for COM)") 
-                nml_patch['nammpp']={}
-                # nml_patch['nammpp']['jpni']=24
-                # nml_patch['nammpp']['jpnj']=2
-                # nml_patch['nammpp']['jpnij']=48
-                nml_patch['nammpp']['jpni']=0
-                nml_patch['nammpp']['jpnj']=0
-                nml_patch['nammpp']['jpnij']=0
-                #this didn't work
-            elif OCEANCORES==96:
-                lg.info("Hard-wiring the proc-decomp for square workloads on 48 procs (normally used for COM)") 
-                nml_patch['nammpp']={}
-                # nml_patch['nammpp']['jpni']=24
-                # nml_patch['nammpp']['jpnj']=4
-                # nml_patch['nammpp']['jpnij']=96
-                nml_patch['nammpp']['jpni']=0
-                nml_patch['nammpp']['jpnj']=0
-                nml_patch['nammpp']['jpnij']=0
-                #this didn't work
+                if os.path.exists(WORKDIR+'isf_draft_meter.nc'):
+                    os.remove(WORKDIR+'isf_draft_meter.nc')
+                    lg.warning("File: "+WORKDIR+'isf_draft_meter.nc' + ' removed.')
+
+                biscdir_prev=WORKDIR+'OUTNEMO_'+str(int(NRUN)-1).zfill(4)+'/'+'bisc/'
+
+                if FORCING_TYPE=='TYP':
+                    shutil.copyfile(biscdir_prev+'bathy_isf_meter_TYP.nc',WORKDIR+'bathy_meter.nc')
+                    shutil.copyfile(biscdir_prev+'bathy_isf_meter_TYP.nc',WORKDIR+'isf_draft_meter.nc')
+                elif FORCING_TYPE=='COM':
+                    shutil.copyfile(biscdir_prev+'bathy_isfdraft_242.nc',WORKDIR+'bathy_meter.nc')
+                    shutil.copyfile(biscdir_prev+'bathy_isfdraft_242.nc',WORKDIR+'isf_draft_meter.nc')
+                bisicles_restart=sorted(glob.glob(biscdir_prev+'chk.MMP.*.2d.hdf5'  ))
+                assert(bisicles_restart!=[]),"glob didn't find a bisicles_restart file!"
+                os.symlink(bisicles_restart[0], WORKDIR+'bisicles/chk.last')
+                lg.info("Using bisicles restart file: "+bisicles_restart[0])
+
+            #always want a mesh_mask with the moving geometry experiments..
+            nml_patch['namdom']={'nn_msh':1}
+
+            if NRUN>1:
+                nml_patch['namrun']['ln_iscpl']=True
+                nml_patch['namsbc_iscpl']={'nn_drown':50} # this wasn't in the cfg but it seems to patch ok!
+
+        if OCEANCORES==20:
+            lg.info("Hard-wiring the proc-decomp for square workloads on 20 procs (normally used for TYP)") 
+            nml_patch['nammpp']={}
+            nml_patch['nammpp']['jpni']=2
+            nml_patch['nammpp']['jpnj']=10
+            nml_patch['nammpp']['jpnij']=20
+        elif OCEANCORES==12:
+            lg.info("Hard-wiring the proc-decomp for Antony's test-case of 12 cores") 
+            #this ran on COM! But is slower than 24 cores on one node
+            nml_patch['nammpp']={}
+            nml_patch['nammpp']['jpni']=0
+            nml_patch['nammpp']['jpnj']=0
+            nml_patch['nammpp']['jpnij']=0
+
+        elif OCEANCORES==24:
+            lg.info("Hard-wiring the proc-decomp for square workloads on 24 procs (normally used for COM)") 
+            nml_patch['nammpp']={}
+            nml_patch['nammpp']['jpni']=12
+            nml_patch['nammpp']['jpnj']=2
+            nml_patch['nammpp']['jpnij']=24
+        elif OCEANCORES==48:
+            lg.info("Hard-wiring the proc-decomp for square workloads on 48 procs (normally used for COM)") 
+            nml_patch['nammpp']={}
+            # nml_patch['nammpp']['jpni']=24
+            # nml_patch['nammpp']['jpnj']=2
+            # nml_patch['nammpp']['jpnij']=48
+            nml_patch['nammpp']['jpni']=0
+            nml_patch['nammpp']['jpnj']=0
+            nml_patch['nammpp']['jpnij']=0
+            #this didn't work
+        elif OCEANCORES==96:
+            lg.info("Hard-wiring the proc-decomp for square workloads on 48 procs (normally used for COM)") 
+            nml_patch['nammpp']={}
+            # nml_patch['nammpp']['jpni']=24
+            # nml_patch['nammpp']['jpnj']=4
+            # nml_patch['nammpp']['jpnij']=96
+            nml_patch['nammpp']['jpni']=0
+            nml_patch['nammpp']['jpnj']=0
+            nml_patch['nammpp']['jpnij']=0
+            #this didn't work
 
         lg.info("")
         lg.info("Resulting patch for namelist_ref: "+str(nml_patch['namrun']))

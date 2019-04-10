@@ -14,7 +14,7 @@
 ##-- User's choices START
 
 CONFIG='MISOMIP_TYP'
-CASE='03a'
+CASE='03b'
 RDIR="/fs2/n02/n02/chbull/nemo/run"
 WORKDIR=${RDIR}/${CONFIG}_${CASE}
 
@@ -42,7 +42,7 @@ PROJ='n02-FISSA'
 PROJ='n02-bas'   #So use "n02-bas as you're already in that group" - email: Jul 16, 2018, 12:11 PM
 
 #avoid weird char'
-DESC='MISOMIP Ocean3 TYP production run'
+DESC='MISOMIP Ocean3b TYP production re-run, re-run because the wrong initial condition was used, now using COLD (i.e. forcing num is 0)'
 YEAR0=1
 YEAR_MAX=100
 #DDMM
@@ -55,7 +55,7 @@ WCONFIG=/fs2/n02/n02/chbull/nemo/bld_configs/input_MISOMIP
 FORCING_TYPE=COM
 FORCING_TYPE=TYP
 
-FORCING_NUM=3
+FORCING_NUM=1
 
 FORCING=/work/n01/shared/core2
 
@@ -72,9 +72,15 @@ DATE=`date '+%Y-%m-%d %H:%M:%S'`
 #BISICLES_CPL=False
 BISICLES_CPL=True
 if [ $BISICLES_CPL = True ]; then
-    if [ ${FORCING_NUM} -lt 3 ]; then
+    #From : 2016 - Asay-Davis et al. - Experimental design for three interrelated marine ice sheet and ocean model intercomparison projects MISMIP, Table 2:
+    #MISOMIP1 IceOcean1r 100-year coupled run with no dynamic calving, COLD initial conditions and WARM forcing
+    #MISOMIP1 IceOcean1ra 100-year coupled run from end of IceOcean1r with no dynamic calving and COLD forcing
+    if [ ${FORCING_NUM} -ne 1 ]; then
+        # since  ${FORCING_NUM} eq 1 is:
+        #ln -s ${WCONFIG}/NEMO_COM/nemo_base_COLD-NEWFIX.nc TS_init.nc
+        #ln -s ${WCONFIG}/NEMO_COM/nemo_base_WARM-NEWFIX.nc resto.nc
         echo "E R R O R"
-        echo "BISICLES_CPL only supported for FORCING_NUM 3 or 4 (see run_nemo_GENERIC.py)."
+        echo "BISICLES_CPL only supported for FORCING_NUM eq 1 (see run_nemo_GENERIC.py)."
         exit 
     fi
 fi
@@ -338,9 +344,9 @@ cat << 'EOF' > ${WORKDIR}/GoNEMO.sh
 #PBS -N WED025-log
 ##PBS -j oe wwww/
 #PBS -l select=gggg
-#PBS -l walltime=hhhh:00:00
-##PBS -l walltime=48:00:00
-##PBS -q long
+##PBS -l walltime=hhhh:00:00
+#PBS -l walltime=48:00:00
+#PBS -q long
 #PBS -mb -M chbull@bas.ac.uk
 
 #FYI
