@@ -566,7 +566,7 @@ if __name__ == "__main__":
             shutil.move(f, rdir+os.path.basename(f))
 
         #for evolving cavity cases keep mesh_mask and bathy/isf
-        if FORCING_NUM==3 or FORCING_NUM==4:
+        if FORCING_NUM==3 or FORCING_NUM==4 or BISICLES_CPL:
             shutil.move(WORKDIR+'isf_draft_meter.nc', odir+'isf_draft_meter'+'_'+str(YEAR).zfill(4)+'.nc')
             shutil.move(WORKDIR+'bathy_meter.nc', odir+'bathy_meter'+'_'+str(YEAR).zfill(4)+'.nc')
             shutil.move(WORKDIR+'mesh_mask.nc', odir+'mesh_mask'+'_'+str(YEAR).zfill(4)+'.nc')
@@ -698,6 +698,7 @@ if __name__ == "__main__":
 
             if str(NRUN)=='1':
                 handle.write('mv -v '+ WORKDIR + 'mesh_mask.nc '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+'\n')
+                handle.write('cp '+ WORKDIR + 'README '+'/nerc/n02/n02/chbull/RawData/NEMO/'+CONFIG+'_'+CASE+'/'+'\n')
 
             #bisicles copy/move outputs
             if BISICLES_CPL:

@@ -13,8 +13,8 @@
 
 ##-- User's choices START
 
-CONFIG='MISOMIP_TYP'
-CASE='03b'
+CONFIG='MISOMIP_COM'
+CASE='03c'
 RDIR="/fs2/n02/n02/chbull/nemo/run"
 WORKDIR=${RDIR}/${CONFIG}_${CASE}
 
@@ -42,7 +42,7 @@ PROJ='n02-FISSA'
 PROJ='n02-bas'   #So use "n02-bas as you're already in that group" - email: Jul 16, 2018, 12:11 PM
 
 #avoid weird char'
-DESC='MISOMIP Ocean3b TYP production re-run, re-run because the wrong initial condition was used, now using COLD (i.e. forcing num is 0)'
+DESC='MISOMIP Ocean3c COM production re-run, re-run because the wrong initial condition was used, now using COLD (i.e. forcing num is 0). And now third try, output-ing the mesh_mask'
 YEAR0=1
 YEAR_MAX=100
 #DDMM
@@ -53,7 +53,7 @@ WCONFIG=/fs2/n02/n02/chbull/nemo/bld_configs/input_MISOMIP
 
 #change the case name too!
 FORCING_TYPE=COM
-FORCING_TYPE=TYP
+#FORCING_TYPE=TYP
 
 FORCING_NUM=1
 
