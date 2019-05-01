@@ -13,7 +13,7 @@
 
 ##-- User's choices START
 
-CONFIG='MISOMIP_COM'
+CONFIG='MISOMIP_TYP'
 CASE='03c'
 RDIR="/fs2/n02/n02/chbull/nemo/run"
 WORKDIR=${RDIR}/${CONFIG}_${CASE}
@@ -42,7 +42,7 @@ PROJ='n02-FISSA'
 PROJ='n02-bas'   #So use "n02-bas as you're already in that group" - email: Jul 16, 2018, 12:11 PM
 
 #avoid weird char'
-DESC='MISOMIP Ocean3c COM production re-run, re-run because the wrong initial condition was used, now using COLD (i.e. forcing num is 0). And now third try, output-ing the mesh_mask'
+DESC='MISOMIP Ocean3c TYP production re-run, re-run because the wrong initial condition was used, now using COLD (i.e. forcing num is 0). And now third try, output-ing the mesh_mask'
 YEAR0=1
 YEAR_MAX=100
 #DDMM
@@ -53,7 +53,7 @@ WCONFIG=/fs2/n02/n02/chbull/nemo/bld_configs/input_MISOMIP
 
 #change the case name too!
 FORCING_TYPE=COM
-#FORCING_TYPE=TYP
+FORCING_TYPE=TYP
 
 FORCING_NUM=1
 
@@ -166,13 +166,15 @@ EOF
     #ln -s /fs2/n02/n02/chbull/nemo/models/MergedCode_9321_flx9855_remap9853_divgcorr9845_shlat9864/NEMOGCM/CONFIG/ISOMIP/BLD/bin/nemo.exe nemo.exe
     ln -s ${NEMO_EXE} nemo.exe
 
-
     # testing the dz method for the losh boundary layer, see: /fs2/n02/n02/chbull/nemo/models/MergedCode_9321_flx9855_remap9853_divgcorr9845_shlat9864/NEMOGCM/CONFIG/ISOMIP_3/MY_SRC/sbcisf.F90
     #echo "W A R N I N G: We are using new version of NEMO (ISOMIP_3) ^^ "
     #ln -s ${NEMO_EXE} nemo.exe
 
     #ln -s /fs2/n02/n02/chbull/nemo/models/XIOS/bin/xios_server.exe xios_server.exe
     ln -s /fs2/n02/n02/chbull/nemo/models/XIOSv1/bin/xios_server.exe xios_server.exe
+
+    #for queue logging only  - rn_rdt
+    echo "360." > ${WORKDIR}/qme
     
     ##cp template: namelists, *.xml etc
     cp -r --preserve=links /nerc/n02/n02/chbull/repos/misomip_bas/configs/rnemo_ARCHER/* ${WORKDIR}

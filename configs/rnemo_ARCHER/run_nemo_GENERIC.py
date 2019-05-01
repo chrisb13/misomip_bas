@@ -335,6 +335,8 @@ if __name__ == "__main__":
                 rebuild_mesh_mask(handle)
             elif FORCING_NUM==3 or FORCING_NUM==4:
                 rebuild_mesh_mask(handle)
+            elif BISICLES_CPL:
+                rebuild_mesh_mask(handle)
 
             rone=CONFIG+'_'+CASE+'_'+NITEND.zfill(8)+'_'+'restart_oce.nc'
             # rone_ice=CONFIG+'_'+CASE+'_'+NITEND.zfill(8)+'_'+'restart_ice.nc'
@@ -570,6 +572,10 @@ if __name__ == "__main__":
             shutil.move(WORKDIR+'isf_draft_meter.nc', odir+'isf_draft_meter'+'_'+str(YEAR).zfill(4)+'.nc')
             shutil.move(WORKDIR+'bathy_meter.nc', odir+'bathy_meter'+'_'+str(YEAR).zfill(4)+'.nc')
             shutil.move(WORKDIR+'mesh_mask.nc', odir+'mesh_mask'+'_'+str(YEAR).zfill(4)+'.nc')
+
+            #copy it back to the workdir in the bisicles_cpl case so that we can restart the next year
+            if BISICLES_CPL:
+                shutil.copyfile(odir+'mesh_mask'+'_'+str(YEAR).zfill(4)+'.nc',WORKDIR+'mesh_mask.nc')
 
         # initfiles=sorted(glob.glob(WORKDIR+'output.init*.nc'))
         # if initfiles==[]: lg.warning("Didn't find any NEMO init files.")
