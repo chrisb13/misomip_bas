@@ -1,0 +1,49 @@
+meta=/projects/ukesm/rsmith/jwalto_repository/moci/r209_GO6_fcm_configs/rose-meta/nemo-cice-fcm-make/HEAD
+
+[env]
+cice_base=trunk
+cice_path_incl=cice/csm_share cice/drivers/hadgem3 cice/mpi cice/source cice/io_netcdf
+cice_project_location=fcm:cice
+cice_rev=vn5.1.2
+cice_sources=branches/dev/jwalton/vn5.1.2_avoid_NEMO_units_UKMO@5381 branches/dev/jwalton/vn5.1.2_sal_dep_frz_fix_UKMO@5462 branches/d
+ev/jwalton/vn5.1.2_fix_mpond_init_bug_UKMO@5388 branches/dev/jwalton/vn5.1.2_fix_GSI6_constants_forced_ocean_ice_UKMO@5469 branches/de
+v/jwalton/vn5.1.2_netcdf4_output_UKMO@5471 branches/dev/jwalton/vn5.1.2_land_suppression_UKMO@5473 branches/dev/jwalton/vn5.1.2_GSI7_C
+CSM3_meltponds_UKMO@5500 branches/dev/jwalton/vn5.1.2_GSI8_UKMO@5467
+cice_version_file=cice5.0m1-version.cfg
+compile_ocean=preprocess-ocean build-ocean
+#config_revision=@vn9.1
+#config_root_path=fcm:um_tr
+config_revision=
+config_root_path=fcm:moci.xm/branches/dev/timgraham/r209_GO6_fcm_configs
+extract=extract
+fcflags_cice_overrides=
+fcflags_nemo_overrides=
+fcflags_prec=-s real64 -s integer32
+keys_cice_app=coupled ncdf CICE_IN_NEMO NEMO_XIOS key_nemocice_decomp gather_scatter_barrier ORCA_GRID NICECAT=5 NICELYR=4 NSNWLYR=1 T
+RAGE=1 TRLVL=0 TRPND=1 TRFY=0 NTRAERO=0 NBGCLYR=0 TRBGCS=0 TRBRI=0 NUMIN=50 NUMAX=99 REPRODUCIBLE key_iomput NXGLOB=$CICE_COL NYGLOB=$
+CICE_ROW BLCKX=$CICE_BLKX BLCKY=$CICE_BLKY MXBLCKS=$CICE_MAXBK
+keys_cice_platform=LINUX
+keys_nemo_app=key_dynspg_flt key_vvl key_ldfslp key_traldf_c2d key_dynldf_c2d key_zdftke key_zdftmx key_trabbl key_zdfddm key_mpp_mpi 
+key_mpp_rep key_nosignedzero key_iomput key_nemocice_decomp
+ldflags_overrides_prefix=
+ldflags_overrides_suffix=
+mirror=mirror
+nemo_base=branches/UKMO/dev_r5518_GO6_package
+nemo_path_incl=NEMOGCM/NEMO/OPA_SRC NEMOGCM/CONFIG/SHARED NEMOGCM/EXTERNAL/IOIPSL/src
+nemo_project_location=fcm:nemo.xm
+nemo_rev=9321
+nemo_sources=branches/UKMO/dev_isf_flx_UKESM_r9321@9864 branches/UKMO/dev_isf_remapping_UKESM_GO6package_r9314@9853  branches/UKMO/dev
+_isf_divg_corr_GO6_package_r9385@9845 branches/UKMO/dev_r7651_GO6pck_shlat2d@9854
+netcdf_inc_path=.
+netcdf_lib_path=.
+ocean_no_dep_module=mpl netcdf mpi xios
+ocean_version_file=nemo3.6-version.cfg
+openmp=openmp_on
+optimisation_level=safe
+platform_config_dir=meto-xc40-cce
+prebuild=
+use_cice=cice-
+use_xios=-lxios
+
+[env:compilation]
+
